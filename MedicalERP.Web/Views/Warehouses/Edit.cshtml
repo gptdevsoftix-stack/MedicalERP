@@ -1,0 +1,11 @@
+﻿@model MedicalERP.Web.Models.WarehouseFormViewModel
+@using MedicalERP.Domain.Enums
+@{ var isEdit = Model.Id.HasValue; ViewData["Title"] = isEdit ? "Edit Warehouse" : "Create Warehouse"; }
+<div class="medical-page-title"><h1>@ViewData["Title"]</h1><p>Warehouse belongs to a store.</p></div>
+<form method="post" class="card"><div class="card-body row g-3"><input asp-for="Id" type="hidden" />
+<div class="col-md-6"><label class="form-label" asp-for="StoreId"></label><select class="form-select" asp-for="StoreId" asp-items="Model.Stores"><option value="">Select store</option></select></div>
+<div class="col-md-6"><label class="form-label" asp-for="WarehouseType"></label><select class="form-select" asp-for="WarehouseType" asp-items="Html.GetEnumSelectList<WarehouseType>()"></select></div>
+<div class="col-md-6"><label class="form-label" asp-for="Name"></label><input class="form-control" asp-for="Name" /></div><div class="col-md-6"><label class="form-label" asp-for="Code"></label><input class="form-control" asp-for="Code" readonly="@(isEdit)" /></div>
+<div class="col-12"><label class="form-label" asp-for="Address"></label><input class="form-control" asp-for="Address" /></div>
+<div class="col-12"><div class="form-check"><input class="form-check-input" asp-for="IsDefault" /><label class="form-check-label" asp-for="IsDefault"></label></div></div>@if(isEdit){<div class="col-12"><div class="form-check"><input class="form-check-input" asp-for="IsActive" /><label class="form-check-label" asp-for="IsActive"></label></div></div>}
+<div class="col-12 d-flex gap-2"><button class="btn btn-primary">Save</button><a class="btn btn-label-secondary" asp-action="Index">Cancel</a></div></div></form>

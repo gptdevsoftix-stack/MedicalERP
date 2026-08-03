@@ -1,0 +1,7 @@
+﻿<Solution>
+  <Project Path="MedicalERP.Application/MedicalERP.Application.csproj" />
+  <Project Path="MedicalERP.Domain/MedicalERP.Domain.csproj" />
+  <Project Path="MedicalERP.Infrastructure/MedicalERP.Infrastructure.csproj" />
+  <Project Path="MedicalERP.Web/MedicalERP.Web.csproj" />
+</Solution>
+

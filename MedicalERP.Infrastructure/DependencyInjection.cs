@@ -1,0 +1,69 @@
+﻿using System.Text;
+using MedicalERP.Application.Abstractions.Security;
+using MedicalERP.Application.Abstractions.Services;
+using MedicalERP.Infrastructure.Authentication;
+using MedicalERP.Infrastructure.Identity;
+using MedicalERP.Infrastructure.Persistence;
+using MedicalERP.Infrastructure.Services;
+using MedicalERP.Domain.Interfaces;
+using MedicalERP.Infrastructure.Repositories;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
+
+namespace MedicalERP.Infrastructure;
+
+public static class DependencyInjection
+{
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.Configure<JwtOptions>(configuration.GetSection("Jwt"));
+        services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
+        services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
+        {
+            options.User.RequireUniqueEmail = true;
+            options.Password.RequireDigit = true;
+            options.Password.RequiredLength = 8;
+            options.Password.RequireNonAlphanumeric = true;
+        }).AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
+
+        var jwt = configuration.GetSection("Jwt").Get<JwtOptions>() ?? new JwtOptions();
+        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidIssuer = jwt.Issuer,
+                ValidateAudience = true,
+                ValidAudience = jwt.Audience,
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.SigningKey)),
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.FromMinutes(1)
+            };
+        });
+        services.AddAuthorization();
+        services.AddHttpContextAccessor();
+        services.AddScoped<ICurrentUserService, CurrentUserService>();
+        services.AddScoped<ICompanyContext, CompanyContext>();
+        services.AddScoped<IStoreContext, StoreContext>();
+        services.AddScoped<IJwtTokenService, JwtTokenService>();
+        services.AddScoped<IRefreshTokenService, RefreshTokenService>();
+        services.AddScoped<ICompanyRepository, CompanyRepository>();
+        services.AddScoped<IStoreRepository, StoreRepository>();
+        services.AddScoped<IWarehouseRepository, WarehouseRepository>();
+        services.AddScoped<ICompanyService, MedicalERP.Application.Services.CompanyService>();
+        services.AddScoped<IStoreService, MedicalERP.Application.Services.StoreService>();
+        services.AddScoped<IWarehouseService, MedicalERP.Application.Services.WarehouseService>();
+        services.AddScoped<IIdentityService, IdentityService>();
+        services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
+        services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
+        return services;
+    }
+}
+
+

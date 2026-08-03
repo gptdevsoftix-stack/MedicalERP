@@ -1,0 +1,10 @@
+﻿@model MedicalERP.Web.Models.RoleFormViewModel
+@{ var isEdit = Model.Id.HasValue; ViewData["Title"] = isEdit ? "Edit Role" : "Create Role"; }
+<div class="medical-page-title"><h1>@ViewData["Title"]</h1><p>Assign permission claims to the role.</p></div>
+<form method="post" class="card"><div class="card-body row g-3"><input asp-for="Id" type="hidden" />
+@if (Model.Companies.Any()) { <div class="col-md-6"><label class="form-label">Company Context</label><select class="form-select" asp-for="CompanyContextId" asp-items="Model.Companies"><option value="">Select company</option></select></div> }
+<div class="col-md-6"><label class="form-label" asp-for="Name"></label><input class="form-control" asp-for="Name" readonly="@(isEdit)" /></div>
+<div class="col-12"><label class="form-label" asp-for="Description"></label><input class="form-control" asp-for="Description" /></div>
+<div class="col-12"><label class="form-label">Permissions</label><select class="form-select" asp-for="SelectedPermissions" asp-items="Model.Permissions" multiple size="14"></select></div>
+@if(isEdit){<div class="col-12"><div class="form-check"><input class="form-check-input" asp-for="IsActive" /><label class="form-check-label" asp-for="IsActive"></label></div></div>}
+<div class="col-12 d-flex gap-2"><button class="btn btn-primary">Save</button><a class="btn btn-label-secondary" asp-action="Index">Cancel</a></div></div></form>

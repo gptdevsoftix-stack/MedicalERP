@@ -1,0 +1,141 @@
+﻿@using System.Security.Claims
+@{
+    var currentPath = Context.Request.Path.Value ?? "/";
+    var userName = User.Identity?.IsAuthenticated == true ? User.Identity.Name : "Guest";
+    var userRoles = User.FindAll(ClaimTypes.Role).Select(r => r.Value).ToArray();
+    var avatarUrl = $"https://api.dicebear.com/6.x/initials/svg?seed={Uri.EscapeDataString(userName ?? "MedicalERP")}";
+}
+<!DOCTYPE html>
+<html lang="en"
+      class="light-style layout-navbar-fixed layout-menu-fixed"
+      dir="ltr"
+      data-theme="theme-default"
+      data-assets-path="/assets/"
+      data-template="vertical-menu-template">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <title>@ViewData["Title"] - MedicalERP</title>
+
+    <link rel="icon" type="image/x-icon" href="~/assets/img/favicon/favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="~/assets/vendor/fonts/fontawesome.css" />
+    <link rel="stylesheet" href="~/assets/vendor/fonts/tabler-icons.css" />
+    <link rel="stylesheet" href="~/assets/vendor/fonts/flag-icons.css" />
+    <link rel="stylesheet" href="~/assets/vendor/css/rtl/core.css" class="template-customizer-core-css" />
+    <link rel="stylesheet" href="~/assets/vendor/css/rtl/theme-default.css" class="template-customizer-theme-css" />
+    <link rel="stylesheet" href="~/assets/css/demo.css" />
+    <link rel="stylesheet" href="~/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
+    <link rel="stylesheet" href="~/assets/vendor/libs/node-waves/node-waves.css" />
+    <link rel="stylesheet" href="~/assets/vendor/libs/spinkit/spinkit.css" />
+    <link rel="stylesheet" href="~/assets/vendor/libs/select2/select2.css" />
+    <link rel="stylesheet" href="~/assets/vendor/libs/sweetalert2/sweetalert2.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+
+    <script src="~/assets/vendor/js/helpers.js"></script>
+    <script src="~/assets/js/config.js"></script>
+    @await RenderSectionAsync("HeadStyles", required: false)
+</head>
+<body>
+    <div class="layout-wrapper layout-content-navbar">
+        <div class="layout-container">
+            <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+                <div class="app-brand demo">
+                    <a asp-controller="Home" asp-action="Index" class="app-brand-link">
+                        <span class="app-brand-logo demo">
+                            <svg width="32" height="22" viewBox="0 0 32 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path fill-rule="evenodd" clip-rule="evenodd" d="M0 0V6.85C0 6.85 -.13 9.01 1.98 10.84L13.69 22H19.78L18.8 9.88L16.5 7.17L9.24 0H0Z" fill="#7367F0" />
+                                <path fill-rule="evenodd" clip-rule="evenodd" d="M7.77 16.36L23.66 0H32V6.88C32 6.88 31.83 9.18 30.66 10.41L19.78 22H13.69L7.77 16.36Z" fill="#7367F0" />
+                            </svg>
+                        </span>
+                        <span class="app-brand-text demo menu-text fw-bold">MedicalERP</span>
+                    </a>
+                    <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">
+                        <i class="ti menu-toggle-icon d-none d-xl-block ti-sm align-middle"></i>
+                        <i class="ti ti-x d-block d-xl-none ti-sm align-middle"></i>
+                    </a>
+                </div>
+                <div class="menu-inner-shadow"></div>
+                <ul class="menu-inner py-1">
+                    <li class="menu-item@(currentPath == "/" || currentPath.Contains("/Home") ? " active" : "")">
+                        <a asp-controller="Home" asp-action="Index" class="menu-link"><i class="menu-icon tf-icons ti ti-home"></i><div>Dashboard</div></a>
+                    </li>
+                    <li class="menu-item@(currentPath.Contains("/Companies") ? " active" : "")">
+                        <a asp-controller="Companies" asp-action="Index" class="menu-link"><i class="menu-icon tf-icons ti ti-building-skyscraper"></i><div>Companies</div></a>
+                    </li>
+                    <li class="menu-item@(currentPath.Contains("/Stores") ? " active" : "")">
+                        <a asp-controller="Stores" asp-action="Index" class="menu-link"><i class="menu-icon tf-icons ti ti-building-store"></i><div>Stores</div></a>
+                    </li>
+                    <li class="menu-item@(currentPath.Contains("/Warehouses") ? " active" : "")">
+                        <a asp-controller="Warehouses" asp-action="Index" class="menu-link"><i class="menu-icon tf-icons ti ti-building-warehouse"></i><div>Warehouses</div></a>
+                    </li>
+                    <li class="menu-item@(currentPath.Contains("/Users") ? " active" : "")">
+                        <a asp-controller="Users" asp-action="Index" class="menu-link"><i class="menu-icon tf-icons ti ti-users"></i><div>Users</div></a>
+                    </li>
+                    <li class="menu-item@(currentPath.Contains("/Roles") ? " active" : "")">
+                        <a asp-controller="Roles" asp-action="Index" class="menu-link"><i class="menu-icon tf-icons ti ti-lock"></i><div>Roles</div></a>
+                    </li>
+                    <li class="menu-header small text-uppercase"><span class="menu-header-text">API Endpoints</span></li>
+                    <li class="menu-item"><a href="/api/companies" class="menu-link"><i class="menu-icon tf-icons ti ti-api"></i><div>Companies API</div></a></li>
+                    <li class="menu-item"><a href="/api/stores" class="menu-link"><i class="menu-icon tf-icons ti ti-api"></i><div>Stores API</div></a></li>
+                </ul>
+            </aside>
+
+            <div class="layout-page">
+                <nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme" id="layout-navbar">
+                    <div class="layout-menu-toggle navbar-nav align-items-xl-center me-3 me-xl-0 d-xl-none">
+                        <a class="nav-item nav-link px-0 me-xl-4" href="javascript:void(0)"><i class="ti ti-menu-2 ti-sm"></i></a>
+                    </div>
+                    <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
+                        <div class="navbar-nav align-items-center">
+                            <div class="nav-item navbar-search-wrapper mb-0">
+                                <span class="d-none d-md-inline-block text-muted">Multi-company medical ERP and POS</span>
+                            </div>
+                        </div>
+                        <ul class="navbar-nav flex-row align-items-center ms-auto">
+                            <li class="nav-item me-3"><span class="text-muted small">@userName</span></li>
+                            <li class="nav-item navbar-dropdown dropdown-user dropdown">
+                                <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
+                                    <div class="avatar avatar-online"><img src="@avatarUrl" alt="User avatar" class="rounded-circle" /></div>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li class="px-3 py-2">
+                                        <span class="fw-semibold d-block">@userName</span>
+                                        <small class="text-muted">@(userRoles.Length > 0 ? string.Join(", ", userRoles) : "No roles assigned")</small>
+                                    </li>
+                                    <li><div class="dropdown-divider"></div></li>
+                                    <li><a class="dropdown-item" asp-controller="Home" asp-action="AccessDenied"><i class="ti ti-shield-lock me-2 ti-sm"></i><span class="align-middle">Access</span></a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+
+                <div class="content-wrapper">
+                    @await Html.PartialAsync("_ModalPartial")
+                    <div class="container-xxl flex-grow-1 container-p-y">
+                        @RenderBody()
+                    </div>
+                    <div class="content-backdrop fade"></div>
+                </div>
+            </div>
+        </div>
+        <div class="layout-overlay layout-menu-toggle"></div>
+        <div class="drag-target"></div>
+    </div>
+
+    <script src="~/assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="~/assets/vendor/libs/popper/popper.js"></script>
+    <script src="~/assets/vendor/js/bootstrap.js"></script>
+    <script src="~/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+    <script src="~/assets/vendor/libs/node-waves/node-waves.js"></script>
+    <script src="~/assets/vendor/libs/hammer/hammer.js"></script>
+    <script src="~/assets/vendor/js/menu.js"></script>
+    <script src="~/assets/js/main.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

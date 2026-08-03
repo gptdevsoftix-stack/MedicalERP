@@ -1,0 +1,13 @@
+﻿:root { --medicalerp-accent: #7367f0; }
+body { font-family: "Public Sans", sans-serif; }
+.app-brand-text { color: #4b465c; letter-spacing: 0; }
+.menu .app-brand.demo { height: 64px; }
+.container-p-y { padding-top: 1.5rem !important; padding-bottom: 1.5rem !important; }
+.medical-page-title { margin-bottom: 1.25rem; }
+.medical-page-title h1 { font-size: 1.5rem; margin: 0; color: #4b465c; }
+.medical-page-title p { margin: .35rem 0 0; color: #6f6b7d; }
+.medical-stat-card { min-height: 128px; }
+.medical-stat-card .avatar { width: 42px; height: 42px; }
+.hero-card { border: 0; background: linear-gradient(135deg, #ffffff 0%, #eef1ff 100%); }
+.hero-card h1 { font-size: 1.75rem; color: #4b465c; }
+.hero-card p { color: #6f6b7d; max-width: 760px; }
