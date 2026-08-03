@@ -108,6 +108,14 @@
                                     </li>
                                     <li><div class="dropdown-divider"></div></li>
                                     <li><a class="dropdown-item" asp-controller="Home" asp-action="AccessDenied"><i class="ti ti-shield-lock me-2 ti-sm"></i><span class="align-middle">Access</span></a></li>
+                                    <li>
+                                        <form asp-controller="Account" asp-action="Logout" method="post" class="m-0">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="dropdown-item">
+                                                <i class="ti ti-logout me-2 ti-sm"></i><span class="align-middle">Logout</span>
+                                            </button>
+                                        </form>
+                                    </li>
                                 </ul>
                             </li>
                         </ul>

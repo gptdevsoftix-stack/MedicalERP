@@ -32,7 +32,27 @@ public static class DependencyInjection
         }).AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
 
         var jwt = configuration.GetSection("Jwt").Get<JwtOptions>() ?? new JwtOptions();
-        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
+        services.AddScoped<IUserClaimsPrincipalFactory<ApplicationUser>, ApplicationClaimsPrincipalFactory>();
+        services.ConfigureApplicationCookie(options =>
+        {
+            options.LoginPath = "/Account/Login";
+            options.LogoutPath = "/Account/Logout";
+            options.AccessDeniedPath = "/Home/AccessDenied";
+        });
+        services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = "MedicalERP";
+            options.DefaultChallengeScheme = "MedicalERP";
+            options.DefaultScheme = "MedicalERP";
+        })
+        .AddPolicyScheme("MedicalERP", "MedicalERP", options =>
+        {
+            options.ForwardDefaultSelector = context =>
+                context.Request.Headers.Authorization.ToString().StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
+                    ? JwtBearerDefaults.AuthenticationScheme
+                    : IdentityConstants.ApplicationScheme;
+        })
+        .AddJwtBearer(options =>
         {
             options.TokenValidationParameters = new TokenValidationParameters
             {
@@ -46,7 +66,12 @@ public static class DependencyInjection
                 ClockSkew = TimeSpan.FromMinutes(1)
             };
         });
-        services.AddAuthorization();
+        services.AddAuthorization(options =>
+        {
+            options.FallbackPolicy = new AuthorizationPolicyBuilder()
+                .RequireAuthenticatedUser()
+                .Build();
+        });
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddScoped<ICompanyContext, CompanyContext>();
