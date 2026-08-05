@@ -1,4 +1,4 @@
-﻿using MedicalERP.Application.Abstractions.Services;
+using MedicalERP.Application.Interfaces;
 using MedicalERP.Application.Common;
 using MedicalERP.Application.Companies.Dtos;
 using MedicalERP.Application.Permissions;
@@ -66,4 +66,5 @@ public sealed class CompaniesController(ICompanyService service) : Controller
     [HttpPost("{id:guid}/activate"), HasPermission(Permissions.Companies.Activate)] public async Task<ActionResult<ApiResponse<object>>> Activate(Guid id, CancellationToken ct) { await service.SetActiveAsync(id, true, ct); return Ok(ApiResponse<object>.Ok(new { })); }
     [HttpPost("{id:guid}/suspend"), HasPermission(Permissions.Companies.Suspend)] public async Task<ActionResult<ApiResponse<object>>> Suspend(Guid id, CancellationToken ct) { await service.SetActiveAsync(id, false, ct); return Ok(ApiResponse<object>.Ok(new { })); }
 }
+
 

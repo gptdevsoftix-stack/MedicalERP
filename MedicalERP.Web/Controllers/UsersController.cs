@@ -1,4 +1,4 @@
-﻿using MedicalERP.Application.Abstractions.Services;
+using MedicalERP.Application.Interfaces;
 using MedicalERP.Application.Common;
 using MedicalERP.Application.Identity.Dtos;
 using MedicalERP.Application.Permissions;
@@ -61,3 +61,4 @@ public sealed class UsersController(IIdentityService identity, IStoreService sto
     [HttpPost("assign-stores"), HasPermission(Permissions.Users.AssignStores)] public async Task<ActionResult<ApiResponse<object>>> AssignStores([FromBody] AssignStoresRequest request, CancellationToken ct) { await identity.AssignStoresAsync(request, ct); return Ok(ApiResponse<object>.Ok(new { })); }
     [HttpPost("assign-roles"), HasPermission(Permissions.Users.AssignRoles)] public async Task<ActionResult<ApiResponse<object>>> AssignRoles([FromBody] AssignRolesRequest request, CancellationToken ct) { await identity.AssignRolesAsync(request, ct); return Ok(ApiResponse<object>.Ok(new { })); }
 }
+

@@ -1,6 +1,6 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using MedicalERP.Application.Abstractions.Security;
-using MedicalERP.Application.Abstractions.Services;
+using MedicalERP.Application.Interfaces;
 using MedicalERP.Application.Common;
 using MedicalERP.Application.Identity.Dtos;
 using MedicalERP.Application.Permissions;
@@ -180,4 +180,5 @@ public sealed class IdentityService(
         return new RoleDto(role.Id, role.CompanyId, role.Name ?? string.Empty, role.Description, role.IsSystemRole, role.IsActive, permissions);
     }
 }
+
 

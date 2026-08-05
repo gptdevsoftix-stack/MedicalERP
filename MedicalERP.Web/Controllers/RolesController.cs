@@ -1,4 +1,4 @@
-﻿using MedicalERP.Application.Abstractions.Services;
+using MedicalERP.Application.Interfaces;
 using MedicalERP.Application.Common;
 using MedicalERP.Application.Identity.Dtos;
 using MedicalERP.Application.Permissions;
@@ -59,3 +59,4 @@ public sealed class RolesController(IIdentityService identity, ICompanyService c
     [HttpDelete("{id:guid}"), HasPermission(Permissions.Roles.Delete)] public async Task<ActionResult<ApiResponse<object>>> DeleteApi(Guid id, CancellationToken ct) { await identity.SetRoleActiveAsync(id, false, ct); return Ok(ApiResponse<object>.Ok(new { })); }
     [HttpPost("{id:guid}/permissions"), HasPermission(Permissions.Roles.ManagePermissions)] public async Task<ActionResult<ApiResponse<object>>> ManagePermissions(Guid id, [FromBody] ManageRolePermissionsRequest request, CancellationToken ct) { await identity.ManageRolePermissionsAsync(id, request, ct); return Ok(ApiResponse<object>.Ok(new { })); }
 }
+

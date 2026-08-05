@@ -1,6 +1,6 @@
-﻿using System.Text;
+using System.Text;
 using MedicalERP.Application.Abstractions.Security;
-using MedicalERP.Application.Abstractions.Services;
+using MedicalERP.Application.Interfaces;
 using MedicalERP.Infrastructure.Authentication;
 using MedicalERP.Infrastructure.Identity;
 using MedicalERP.Infrastructure.Persistence;
@@ -90,5 +90,6 @@ public static class DependencyInjection
         return services;
     }
 }
+
 
 

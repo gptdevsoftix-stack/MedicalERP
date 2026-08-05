@@ -1,4 +1,4 @@
-﻿using MedicalERP.Application.Abstractions.Services;
+using MedicalERP.Application.Interfaces;
 using MedicalERP.Application.Common;
 using MedicalERP.Application.Permissions;
 using MedicalERP.Application.Warehouses.Dtos;
@@ -65,3 +65,4 @@ public sealed class WarehousesController(IWarehouseService service, IStoreServic
     [HttpPut("{id:guid}"), HasPermission(Permissions.Stores.Update)] public async Task<ActionResult<ApiResponse<WarehouseDto>>> Update(Guid id, [FromBody] UpdateWarehouseRequest request, CancellationToken ct) => Ok(ApiResponse<WarehouseDto>.Ok(await service.UpdateAsync(id, request, ct)));
     [HttpPost("{id:guid}/deactivate"), HasPermission(Permissions.Stores.Update)] public async Task<ActionResult<ApiResponse<object>>> Deactivate(Guid id, CancellationToken ct) { await service.SetActiveAsync(id, false, ct); return Ok(ApiResponse<object>.Ok(new { })); }
 }
+

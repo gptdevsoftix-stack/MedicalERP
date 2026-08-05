@@ -1,4 +1,4 @@
-﻿using MedicalERP.Application.Abstractions.Services;
+using MedicalERP.Application.Interfaces;
 using MedicalERP.Application.Common;
 using MedicalERP.Application.Permissions;
 using MedicalERP.Application.Stores.Dtos;
@@ -66,3 +66,4 @@ public sealed class StoresController(IStoreService service, ICompanyService comp
     [HttpPost("{id:guid}/activate"), HasPermission(Permissions.Stores.Activate)] public async Task<ActionResult<ApiResponse<object>>> Activate(Guid id, CancellationToken ct) { await service.SetActiveAsync(id, true, ct); return Ok(ApiResponse<object>.Ok(new { })); }
     [HttpPost("{id:guid}/deactivate"), HasPermission(Permissions.Stores.Activate)] public async Task<ActionResult<ApiResponse<object>>> Deactivate(Guid id, CancellationToken ct) { await service.SetActiveAsync(id, false, ct); return Ok(ApiResponse<object>.Ok(new { })); }
 }
+

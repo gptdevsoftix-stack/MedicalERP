@@ -1,5 +1,5 @@
-﻿using MedicalERP.Application.Abstractions.Security;
-using MedicalERP.Application.Abstractions.Services;
+using MedicalERP.Application.Abstractions.Security;
+using MedicalERP.Application.Interfaces;
 using MedicalERP.Application.Common;
 using MedicalERP.Application.Identity.Dtos;
 using Microsoft.AspNetCore.Authorization;
@@ -27,4 +27,5 @@ public sealed class AuthController(IIdentityService identity, IRefreshTokenServi
     [HttpPost("reset-password")]
     public async Task<ActionResult<ApiResponse<object>>> ResetPassword(ResetPasswordRequest request, CancellationToken ct) { await identity.ResetPasswordAsync(request, ct); return Ok(ApiResponse<object>.Ok(new { })); }
 }
+
 
