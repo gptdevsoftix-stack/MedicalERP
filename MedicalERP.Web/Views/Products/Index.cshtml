@@ -1,0 +1,169 @@
+﻿@model IReadOnlyCollection<
+MedicalERP.Domain.DTOs.ProductListDto >
+
+@{
+    ViewData["Title"] = "Products";
+    var companyContextId = ViewBag.CompanyContextId as string;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Products</h2>
+
+    <a asp-action="Create" asp-route-companyContextId="@companyContextId" class="btn btn-primary">
+        Add Product
+    </a>
+</div>
+
+@if (TempData["SuccessMessage"] is not null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+<form method="get" class="row g-2 mb-3">
+    <input type="hidden" name="companyContextId" value="@companyContextId" />
+
+    <div class="col-md-3">
+        <input name="search"
+               value="@ViewBag.Search"
+               class="form-control"
+               placeholder="Name, code or regulatory number" />
+    </div>
+
+    <div class="col-md-3">
+        <select name="categoryId"
+                asp-items="ViewBag.Categories"
+                class="form-select">
+            <option value="">All categories</option>
+        </select>
+    </div>
+
+    <div class="col-md-2">
+        <select name="isMedicine" class="form-select">
+            <option value="">All types</option>
+            <option value="true"
+                    selected="@(ViewBag.IsMedicine == true)">
+                Medicine
+            </option>
+            <option value="false"
+                    selected="@(ViewBag.IsMedicine == false)">
+                General item
+            </option>
+        </select>
+    </div>
+
+    <div class="col-md-2">
+        <select name="isActive" class="form-select">
+            <option value="">All statuses</option>
+            <option value="true"
+                    selected="@(ViewBag.IsActive == true)">
+                Active
+            </option>
+            <option value="false"
+                    selected="@(ViewBag.IsActive == false)">
+                Inactive
+            </option>
+        </select>
+    </div>
+
+    <div class="col-auto">
+        <button class="btn btn-outline-primary">
+            Search
+        </button>
+
+        <a asp-action="Index"
+           asp-route-companyContextId="@companyContextId"
+           class="btn btn-outline-secondary">
+            Clear
+        </a>
+    </div>
+</form>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-striped align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Code</th>
+                    <th>Category</th>
+                    <th>Brand</th>
+                    <th>Unit</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @if (Model.Count == 0)
+                {
+                    <tr>
+                        <td colspan="8"
+                            class="text-center py-4">
+                            No products found.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var product in Model)
+                    {
+                        <tr>
+                            <td>@product.Name</td>
+                            <td>@product.Code</td>
+                            <td>@product.CategoryName</td>
+                            <td>@(product.BrandName ?? "-")</td>
+                            <td>@product.BaseUnitName</td>
+                            <td>
+                                @if (product.IsMedicine)
+                                {
+                                    <span class="badge bg-info">
+                                        Medicine
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">
+                                        General
+                                    </span>
+                                }
+                            </td>
+                            <td>
+                                <span class="badge bg-@(product.IsActive ? "success" : "secondary")">
+                                    @(product.IsActive ? "Active" : "Inactive")
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                <a asp-action="Details"
+                                   asp-route-id="@product.Id"
+                                   asp-route-companyContextId="@companyContextId"
+                                   class="btn btn-sm btn-outline-info">
+                                    Details
+                                </a>
+
+                                <a asp-action="Edit"
+                                   asp-route-id="@product.Id"
+                                   asp-route-companyContextId="@companyContextId"
+                                   class="btn btn-sm btn-outline-primary">
+                                    Edit
+                                </a>
+
+                                @if (product.IsActive)
+                                {
+                                    <a asp-action="Delete"
+                                       asp-route-id="@product.Id"
+                                       asp-route-companyContextId="@companyContextId"
+                                       class="btn btn-sm btn-outline-danger">
+                                        Deactivate
+                                    </a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

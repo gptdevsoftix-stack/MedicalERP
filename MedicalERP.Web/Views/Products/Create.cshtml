@@ -1,0 +1,26 @@
+﻿@model MedicalERP.Domain.DTOs.ProductFormDto
+
+@{
+    ViewData["Title"] = "Create Product";
+    var companyContextId = ViewBag.CompanyContextId as string;
+}
+
+<h2>Create Product</h2>
+
+<form asp-action="Create" method="post">
+    <input type="hidden" name="companyContextId" value="@companyContextId" />
+
+    <partial name="_ProductForm" model="Model" />
+
+    <button type="submit" class="btn btn-primary">
+        Save
+    </button>
+
+    <a asp-action="Index" asp-route-companyContextId="@companyContextId" class="btn btn-secondary">
+        Cancel
+    </a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

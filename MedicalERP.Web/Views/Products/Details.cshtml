@@ -1,0 +1,116 @@
+﻿@model MedicalERP.Domain.DTOs.ProductDetailsDto
+
+@{
+    ViewData["Title"] = "Product Details";
+    var companyContextId = ViewBag.CompanyContextId as string;
+}
+
+<h2>Product Details</h2>
+
+@if (TempData["SuccessMessage"] is not null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+<div class="card">
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-3">Name</dt>
+            <dd class="col-sm-9">@Model.Name</dd>
+
+            <dt class="col-sm-3">Code</dt>
+            <dd class="col-sm-9">@Model.Code</dd>
+
+            <dt class="col-sm-3">Description</dt>
+            <dd class="col-sm-9">
+                @(Model.Description ?? "-")
+            </dd>
+
+            <dt class="col-sm-3">Category</dt>
+            <dd class="col-sm-9">@Model.CategoryName</dd>
+
+            <dt class="col-sm-3">Brand</dt>
+            <dd class="col-sm-9">
+                @(Model.BrandName ?? "-")
+            </dd>
+
+            <dt class="col-sm-3">Manufacturer</dt>
+            <dd class="col-sm-9">
+                @(Model.ManufacturerName ?? "-")
+            </dd>
+
+            <dt class="col-sm-3">Generic Medicine</dt>
+            <dd class="col-sm-9">
+                @(Model.GenericMedicineName ?? "-")
+            </dd>
+
+            <dt class="col-sm-3">Dosage Form</dt>
+            <dd class="col-sm-9">
+                @(Model.DosageFormName ?? "-")
+            </dd>
+
+            <dt class="col-sm-3">Strength</dt>
+            <dd class="col-sm-9">
+                @(Model.StrengthName ?? "-")
+            </dd>
+
+            <dt class="col-sm-3">Base Unit</dt>
+            <dd class="col-sm-9">@Model.BaseUnitName</dd>
+
+            <dt class="col-sm-3">Product Type</dt>
+            <dd class="col-sm-9">@Model.ProductType</dd>
+
+            <dt class="col-sm-3">Regulatory Number</dt>
+            <dd class="col-sm-9">
+                @(Model.RegulatoryNumber ?? "-")
+            </dd>
+
+            <dt class="col-sm-3">Medicine</dt>
+            <dd class="col-sm-9">
+                @(Model.IsMedicine ? "Yes" : "No")
+            </dd>
+
+            <dt class="col-sm-3">Prescription Required</dt>
+            <dd class="col-sm-9">
+                @(Model.RequiresPrescription ? "Yes" : "No")
+            </dd>
+
+            <dt class="col-sm-3">Controlled Drug</dt>
+            <dd class="col-sm-9">
+                @(Model.IsControlledDrug ? "Yes" : "No")
+            </dd>
+
+            <dt class="col-sm-3">Track Batch</dt>
+            <dd class="col-sm-9">
+                @(Model.TrackBatch ? "Yes" : "No")
+            </dd>
+
+            <dt class="col-sm-3">Track Expiry</dt>
+            <dd class="col-sm-9">
+                @(Model.TrackExpiry ? "Yes" : "No")
+            </dd>
+
+            <dt class="col-sm-3">Status</dt>
+            <dd class="col-sm-9">
+                @(Model.IsActive ? "Active" : "Inactive")
+            </dd>
+        </dl>
+    </div>
+</div>
+
+<div class="mt-3">
+    <a asp-action="Edit"
+       asp-route-id="@Model.Id"
+       asp-route-companyContextId="@companyContextId"
+       class="btn btn-primary">
+        Edit
+    </a>
+
+    <a asp-action="Index"
+       asp-route-companyContextId="@companyContextId"
+       class="btn btn-secondary">
+        Back
+    </a>
+</div>

@@ -44,14 +44,40 @@
     document.addEventListener("DOMContentLoaded", () => {
         const selector = document.getElementById("theme-selector");
 
-        if (!selector) return;
+        if (selector) {
+            selector.value = getStoredTheme();
+            selector.addEventListener("change", event => {
+                const theme = event.target.value === "dark" ? "dark" : "light";
 
-        selector.value = getStoredTheme();
-        selector.addEventListener("change", event => {
-            const theme = event.target.value === "dark" ? "dark" : "light";
+                localStorage.setItem(storageKey, theme);
+                applyTheme(theme);
+            });
+        }
 
-            localStorage.setItem(storageKey, theme);
-            applyTheme(theme);
-        });
+        const productType = document.getElementById("ProductType");
+        const medicineFields = document.querySelectorAll(".medicine-fields");
+
+        if (productType && medicineFields.length > 0) {
+            const applyProductType = () => {
+                const isMedicine = productType.value === "Medicine" || productType.value === "1";
+
+                medicineFields.forEach(field => {
+                    field.classList.toggle("d-none", !isMedicine);
+
+                    if (!isMedicine) {
+                        field.querySelectorAll("input, select, textarea").forEach(input => {
+                            if (input.type === "checkbox") {
+                                input.checked = false;
+                            } else {
+                                input.value = "";
+                            }
+                        });
+                    }
+                });
+            };
+
+            productType.addEventListener("change", applyProductType);
+            applyProductType();
+        }
     });
 })();

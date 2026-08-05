@@ -1,0 +1,190 @@
+﻿@model MedicalERP.Domain.DTOs.ProductFormDto
+
+<div asp-validation-summary="ModelOnly"
+     class="alert alert-danger"></div>
+
+<div class="row">
+    <div class="col-md-6 mb-3">
+        <label asp-for="Name" class="form-label"></label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name"
+              class="text-danger"></span>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <label asp-for="Code" class="form-label"></label>
+        <input asp-for="Code" class="form-control" />
+        <span asp-validation-for="Code"
+              class="text-danger"></span>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <label asp-for="ProductType" class="form-label"></label>
+        <select asp-for="ProductType"
+                asp-items="ViewBag.ProductTypes"
+                class="form-select">
+        </select>
+    </div>
+</div>
+
+<div class="mb-3">
+    <label asp-for="Description" class="form-label"></label>
+    <textarea asp-for="Description"
+              class="form-control"
+              rows="3"></textarea>
+    <span asp-validation-for="Description"
+          class="text-danger"></span>
+</div>
+
+<div class="row">
+    <div class="col-md-4 mb-3">
+        <label asp-for="CategoryId" class="form-label"></label>
+        <select asp-for="CategoryId"
+                asp-items="ViewBag.Categories"
+                class="form-select">
+            <option value="">Select category</option>
+        </select>
+        <span asp-validation-for="CategoryId"
+              class="text-danger"></span>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <label asp-for="ProductBrandId" class="form-label"></label>
+        <select asp-for="ProductBrandId"
+                asp-items="ViewBag.ProductBrands"
+                class="form-select">
+            <option value="">No brand</option>
+        </select>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <label asp-for="ManufacturerId" class="form-label"></label>
+        <select asp-for="ManufacturerId"
+                asp-items="ViewBag.Manufacturers"
+                class="form-select">
+            <option value="">No manufacturer</option>
+        </select>
+    </div>
+</div>
+
+<div class="row medicine-fields">
+    <div class="col-md-4 mb-3">
+        <label asp-for="GenericMedicineId"
+               class="form-label"></label>
+        <select asp-for="GenericMedicineId"
+                asp-items="ViewBag.GenericMedicines"
+                class="form-select">
+            <option value="">Select generic medicine</option>
+        </select>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <label asp-for="DosageFormId"
+               class="form-label"></label>
+        <select asp-for="DosageFormId"
+                asp-items="ViewBag.DosageForms"
+                class="form-select">
+            <option value="">Select dosage form</option>
+        </select>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <label asp-for="StrengthId"
+               class="form-label"></label>
+        <select asp-for="StrengthId"
+                asp-items="ViewBag.Strengths"
+                class="form-select">
+            <option value="">Select strength</option>
+        </select>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4 mb-3">
+        <label asp-for="BaseUnitId" class="form-label"></label>
+        <select asp-for="BaseUnitId"
+                asp-items="ViewBag.Units"
+                class="form-select">
+            <option value="">Select base unit</option>
+        </select>
+        <span asp-validation-for="BaseUnitId"
+              class="text-danger"></span>
+    </div>
+
+    <div class="col-md-4 mb-3 medicine-fields">
+        <label asp-for="RegulatoryNumber"
+               class="form-label"></label>
+        <input asp-for="RegulatoryNumber"
+               class="form-control" />
+        <span asp-validation-for="RegulatoryNumber"
+              class="text-danger"></span>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-3 mb-3 medicine-fields">
+        <div class="form-check">
+            <input asp-for="RequiresPrescription"
+                   class="form-check-input" />
+            <label asp-for="RequiresPrescription"
+                   class="form-check-label"></label>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3 medicine-fields">
+        <div class="form-check">
+            <input asp-for="IsControlledDrug"
+                   class="form-check-input" />
+            <label asp-for="IsControlledDrug"
+                   class="form-check-label"></label>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="form-check">
+            <input asp-for="TrackBatch"
+                   class="form-check-input" />
+            <label asp-for="TrackBatch"
+                   class="form-check-label"></label>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="form-check">
+            <input asp-for="TrackExpiry"
+                   class="form-check-input" />
+            <label asp-for="TrackExpiry"
+                   class="form-check-label"></label>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="form-check">
+            <input asp-for="AllowDiscount"
+                   class="form-check-input" />
+            <label asp-for="AllowDiscount"
+                   class="form-check-label"></label>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="form-check">
+            <input asp-for="AllowNegativeStock"
+                   class="form-check-input" />
+            <label asp-for="AllowNegativeStock"
+                   class="form-check-label"></label>
+        </div>
+    </div>
+
+    @if (Model.Id != Guid.Empty)
+    {
+        <div class="col-md-3 mb-3">
+            <div class="form-check">
+                <input asp-for="IsActive"
+                       class="form-check-input" />
+                <label asp-for="IsActive"
+                       class="form-check-label"></label>
+            </div>
+        </div>
+    }
+</div>
