@@ -1,4 +1,5 @@
-﻿using MedicalERP.Domain.Common;
+﻿using MedicalERP.Domain.Catalog;
+using MedicalERP.Domain.Common;
 using MedicalERP.Domain.Companies;
 using MedicalERP.Domain.Identity;
 using MedicalERP.Infrastructure.Identity;
@@ -113,5 +114,40 @@ public sealed class ApplicationRoleConfiguration : IEntityTypeConfiguration<Appl
     {
         b.Property(x => x.Description).HasMaxLength(250);
         b.HasIndex(x => new { x.CompanyId, x.NormalizedName }).IsUnique();
+    }
+}
+
+public sealed class CategoryConfiguration
+    : IEntityTypeConfiguration<Category>
+{
+    public void Configure(EntityTypeBuilder<Category> builder)
+    {
+        builder.ToTable("Categories");
+
+        builder.HasKey(x => x.Id);
+
+        builder.Property(x => x.Name)
+            .HasMaxLength(150)
+            .IsRequired();
+
+        builder.Property(x => x.Code)
+            .HasMaxLength(50)
+            .IsRequired();
+
+        builder.HasIndex(x => new
+        {
+            x.CompanyId,
+            x.Code
+        }).IsUnique();
+
+        builder.HasOne(x => x.ParentCategory)
+            .WithMany(x => x.Children)
+            .HasForeignKey(x => x.ParentCategoryId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne<Company>()
+            .WithMany()
+            .HasForeignKey(x => x.CompanyId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

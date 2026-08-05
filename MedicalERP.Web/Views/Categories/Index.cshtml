@@ -1,0 +1,105 @@
+﻿@model IReadOnlyCollection<MedicalERP.Domain.DTOs.CategoryDto>
+
+@{
+    ViewData["Title"] = "Categories";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Categories</h2>
+    <a asp-action="Create" class="btn btn-primary">Add Category</a>
+</div>
+
+@if (TempData["SuccessMessage"] is not null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+
+@if (TempData["ErrorMessage"] is not null)
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+}
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-5">
+        <input name="search"
+               value="@ViewBag.Search"
+               class="form-control"
+               placeholder="Search name or code" />
+    </div>
+
+    <div class="col-auto">
+        <button class="btn btn-outline-primary">Search</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Clear</a>
+    </div>
+</form>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-striped align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Code</th>
+                    <th>Parent</th>
+                    <th>Order</th>
+                    <th>Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Count == 0)
+                {
+                    <tr>
+                        <td colspan="6" class="text-center py-4">
+                            No categories found.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var category in Model)
+                    {
+                        <tr>
+                            <td>@category.Name</td>
+                            <td>@category.Code</td>
+                            <td>@(category.ParentCategoryName ?? "-")</td>
+                            <td>@category.DisplayOrder</td>
+                            <td>
+                                @if (category.IsActive)
+                                {
+                                    <span class="badge bg-success">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Inactive</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <a asp-action="Details"
+                                   asp-route-id="@category.Id"
+                                   class="btn btn-sm btn-outline-info">
+                                    Details
+                                </a>
+
+                                <a asp-action="Edit"
+                                   asp-route-id="@category.Id"
+                                   class="btn btn-sm btn-outline-primary">
+                                    Edit
+                                </a>
+
+                                @if (category.IsActive)
+                                {
+                                    <a asp-action="Delete"
+                                       asp-route-id="@category.Id"
+                                       class="btn btn-sm btn-outline-danger">
+                                        Deactivate
+                                    </a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

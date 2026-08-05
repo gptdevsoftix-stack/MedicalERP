@@ -1,12 +1,12 @@
-using System.Text;
 using MedicalERP.Application.Abstractions.Security;
 using MedicalERP.Application.Interfaces;
+using MedicalERP.Application.Services;
+using MedicalERP.Domain.Interfaces;
 using MedicalERP.Infrastructure.Authentication;
 using MedicalERP.Infrastructure.Identity;
 using MedicalERP.Infrastructure.Persistence;
-using MedicalERP.Infrastructure.Services;
-using MedicalERP.Domain.Interfaces;
 using MedicalERP.Infrastructure.Repositories;
+using MedicalERP.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -14,6 +14,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace MedicalERP.Infrastructure;
 
@@ -87,6 +88,8 @@ public static class DependencyInjection
         services.AddScoped<IIdentityService, IdentityService>();
         services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
         services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
+        services.AddScoped<ICategoryRepository, CategoryRepository>();
+        services.AddScoped<ICategoryService, CategoryService>();
         return services;
     }
 }
