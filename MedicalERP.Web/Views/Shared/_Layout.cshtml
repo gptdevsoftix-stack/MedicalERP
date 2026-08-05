@@ -88,18 +88,18 @@
                     <li class="menu-item@(currentPath.Contains("/Stores") ? " active" : "")">
                         <a asp-controller="Stores" asp-action="Index" class="menu-link"><i class="menu-icon tf-icons ti ti-building-store"></i><div>Stores</div></a>
                     </li>
+                    <li class="menu-item@(currentPath.Contains("/Categories") ? " active" : "")">
+                        <a asp-controller="Categories" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><i class="menu-icon tf-icons ti ti-building-store"></i><div>Categories</div></a>
+                    </li>
+                    <li class="menu-item@(currentPath.Contains("/Products") ? " active" : "")">
+                        <a asp-controller="Products" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><i class="menu-icon tf-icons ti ti-building-store"></i><div>Products</div></a>
+                    </li>
                     <li class="menu-item@(catalogActive ? " active open" : "")">
                         <a href="javascript:void(0);" class="menu-link menu-toggle">
                             <i class="menu-icon tf-icons ti ti-folder"></i>
                             <div>Catalog</div>
                         </a>
                         <ul class="menu-sub">
-                            <li class="menu-item@(currentPath.Contains("/Products") ? " active" : "")">
-                                <a asp-controller="Products" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><div>Products</div></a>
-                            </li>
-                            <li class="menu-item@(currentPath.Contains("/Categories") ? " active" : "")">
-                                <a asp-controller="Categories" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><div>Categories</div></a>
-                            </li>
                             <li class="menu-item@(currentPath.Contains("/ProductBrands") ? " active" : "")">
                                 <a asp-controller="ProductBrands" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><div>Product Brands</div></a>
                             </li>
