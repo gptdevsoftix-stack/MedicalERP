@@ -2,6 +2,7 @@
 using MedicalERP.Infrastructure.Persistence;
 using MedicalERP.Web.Extensions;
 using MedicalERP.Web.Middleware;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -13,6 +14,8 @@ builder.Host.UseSerilog((context, services, configuration) => configuration
     .ReadFrom.Services(services)
     .WriteTo.Console());
 
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(builder.Environment.ContentRootPath, "App_Data", "DataProtectionKeys")));
 builder.Services.AddControllersWithViews();
 builder.Services.AddSignalR();
 builder.Services.AddApplicationServices(builder.Configuration);

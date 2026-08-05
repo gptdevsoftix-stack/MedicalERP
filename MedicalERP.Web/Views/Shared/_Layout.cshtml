@@ -4,6 +4,11 @@
     var userName = User.Identity?.IsAuthenticated == true ? User.Identity.Name : "Guest";
     var userRoles = User.FindAll(ClaimTypes.Role).Select(r => r.Value).ToArray();
     var avatarUrl = $"https://api.dicebear.com/6.x/initials/svg?seed={Uri.EscapeDataString(userName ?? "MedicalERP")}";
+    var catalogActive = currentPath.Contains("/ProductBrands")
+        || currentPath.Contains("/Manufacturers")
+        || currentPath.Contains("/GenericMedicines")
+        || currentPath.Contains("/DosageForms")
+        || currentPath.Contains("/Strengths");
 }
 <!DOCTYPE html>
 <html lang="en"
@@ -82,24 +87,33 @@
                     <li class="menu-item@(currentPath.Contains("/Categories") ? " active" : "")">
                         <a asp-controller="Categories" asp-action="Index" class="menu-link"><i class="menu-icon tf-icons ti ti-building-store"></i><div>Categories</div></a>
                     </li>
-                    <li class="menu-item@(currentPath.Contains("/ProductBrands") ? " active" : "")">
-                        <a asp-controller="ProductBrands" asp-action="Index" class="menu-link"><i class="menu-icon tf-icons ti ti-tag"></i><div>Product Brands</div></a>
+                    <li class="menu-item@(catalogActive ? " active open" : "")">
+                        <a href="javascript:void(0);" class="menu-link menu-toggle">
+                            <i class="menu-icon tf-icons ti ti-folder"></i>
+                            <div>Catalog</div>
+                        </a>
+                        <ul class="menu-sub">
+                            <li class="menu-item@(currentPath.Contains("/ProductBrands") ? " active" : "")">
+                                <a asp-controller="ProductBrands" asp-action="Index" class="menu-link"><div>Product Brands</div></a>
+                            </li>
+                            <li class="menu-item@(currentPath.Contains("/Manufacturers") ? " active" : "")">
+                                <a asp-controller="Manufacturers" asp-action="Index" class="menu-link"><div>Manufacturers</div></a>
+                            </li>
+                            <li class="menu-item@(currentPath.Contains("/GenericMedicines") ? " active" : "")">
+                                <a asp-controller="GenericMedicines" asp-action="Index" class="menu-link"><div>Generic Medicines</div></a>
+                            </li>
+                            <li class="menu-item@(currentPath.Contains("/DosageForms") ? " active" : "")">
+                                <a asp-controller="DosageForms" asp-action="Index" class="menu-link"><div>Dosage Forms</div></a>
+                            </li>
+                            <li class="menu-item@(currentPath.Contains("/Strengths") ? " active" : "")">
+                                <a asp-controller="Strengths" asp-action="Index" class="menu-link"><div>Strengths</div></a>
+                            </li>
+                            <li class="menu-item@(currentPath.Contains("/Units") ? " active" : "")">
+                                <a asp-controller="Units" asp-action="Index" class="menu-link"><i class="menu-icon tf-icons ti ti-scale"></i><div>Units</div></a>
+                            </li>
+                        </ul>
                     </li>
-                    <li class="menu-item@(currentPath.Contains("/Manufacturers") ? " active" : "")">
-                        <a asp-controller="Manufacturers" asp-action="Index" class="menu-link"><i class="menu-icon tf-icons ti ti-building-factory"></i><div>Manufacturers</div></a>
-                    </li>
-                    <li class="menu-item@(currentPath.Contains("/GenericMedicines") ? " active" : "")">
-                        <a asp-controller="GenericMedicines" asp-action="Index" class="menu-link"><i class="menu-icon tf-icons ti ti-pill"></i><div>Generic Medicines</div></a>
-                    </li>
-                    <li class="menu-item@(currentPath.Contains("/DosageForms") ? " active" : "")">
-                        <a asp-controller="DosageForms" asp-action="Index" class="menu-link"><i class="menu-icon tf-icons ti ti-vaccine-bottle"></i><div>Dosage Forms</div></a>
-                    </li>
-                    <li class="menu-item@(currentPath.Contains("/Strengths") ? " active" : "")">
-                        <a asp-controller="Strengths" asp-action="Index" class="menu-link"><i class="menu-icon tf-icons ti ti-ruler-measure"></i><div>Strengths</div></a>
-                    </li>
-                    <li class="menu-item@(currentPath.Contains("/Units") ? " active" : "")">
-                        <a asp-controller="Units" asp-action="Index" class="menu-link"><i class="menu-icon tf-icons ti ti-scale"></i><div>Units</div></a>
-                    </li>
+                    
                     <li class="menu-item@(currentPath.Contains("/Warehouses") ? " active" : "")">
                         <a asp-controller="Warehouses" asp-action="Index" class="menu-link"><i class="menu-icon tf-icons ti ti-building-warehouse"></i><div>Warehouses</div></a>
                     </li>
@@ -109,9 +123,9 @@
                     <li class="menu-item@(currentPath.Contains("/Roles") ? " active" : "")">
                         <a asp-controller="Roles" asp-action="Index" class="menu-link"><i class="menu-icon tf-icons ti ti-lock"></i><div>Roles</div></a>
                     </li>
-                    <li class="menu-header small text-uppercase"><span class="menu-header-text">API Endpoints</span></li>
+                   @*  <li class="menu-header small text-uppercase"><span class="menu-header-text">API Endpoints</span></li>
                     <li class="menu-item"><a href="/api/companies" class="menu-link"><i class="menu-icon tf-icons ti ti-api"></i><div>Companies API</div></a></li>
-                    <li class="menu-item"><a href="/api/stores" class="menu-link"><i class="menu-icon tf-icons ti ti-api"></i><div>Stores API</div></a></li>
+                    <li class="menu-item"><a href="/api/stores" class="menu-link"><i class="menu-icon tf-icons ti ti-api"></i><div>Stores API</div></a></li> *@
                 </ul>
             </aside>
 

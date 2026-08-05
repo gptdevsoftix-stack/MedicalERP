@@ -11,7 +11,7 @@
     <input type="hidden" name="companyContextId" value="@companyContextId" />
     <input asp-for="Id" type="hidden" />
     <input asp-for="MasterType" type="hidden" />
-    <partial name="_CatalogMasterForm" model="Model" />
+    <partial name="~/Views/CatalogMasters/_CatalogMasterForm.cshtml" model="Model" />
     <div class="form-check mb-3">
         <input asp-for="IsActive" class="form-check-input" />
         <label asp-for="IsActive" class="form-check-label"></label>

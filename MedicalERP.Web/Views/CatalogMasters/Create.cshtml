@@ -12,7 +12,7 @@
 <form asp-action="Create" method="post">
     <input type="hidden" name="companyContextId" value="@companyContextId" />
     <input asp-for="MasterType" type="hidden" />
-    <partial name="_CatalogMasterForm" model="Model" />
+    <partial name="~/Views/CatalogMasters/_CatalogMasterForm.cshtml" model="Model" />
     <button type="submit" class="btn btn-primary">Save</button>
     <a asp-action="Index" asp-route-companyContextId="@companyContextId" class="btn btn-secondary">Cancel</a>
 </form>

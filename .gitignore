@@ -26,3 +26,4 @@ packages/
 ## Misc
 *.log
 *.tmp
+MedicalERP.Web/App_Data/DataProtectionKeys/

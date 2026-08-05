@@ -1,6 +1,8 @@
 using MedicalERP.Application.Interfaces;
+using MedicalERP.Application.Permissions;
 using MedicalERP.Domain.DTOs;
 using MedicalERP.Domain.Enums;
+using MedicalERP.Web.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -21,6 +23,7 @@ public abstract class CatalogMastersController : Controller
     protected abstract string SingularTitle { get; }
 
     [HttpGet]
+    [HasPermission(Permissions.Products.View)]
     public async Task<IActionResult> Index(
         string? search,
         CancellationToken cancellationToken)
@@ -36,6 +39,7 @@ public abstract class CatalogMastersController : Controller
     }
 
     [HttpGet]
+    [HasPermission(Permissions.Products.View)]
     public async Task<IActionResult> Details(
         Guid id,
         CancellationToken cancellationToken)
@@ -53,6 +57,7 @@ public abstract class CatalogMastersController : Controller
     }
 
     [HttpGet]
+    [HasPermission(Permissions.Products.Create)]
     public IActionResult Create()
     {
         SetViewData();
@@ -63,6 +68,7 @@ public abstract class CatalogMastersController : Controller
     }
 
     [HttpPost]
+    [HasPermission(Permissions.Products.Create)]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(
         CatalogMasterFormDto request,
@@ -93,6 +99,7 @@ public abstract class CatalogMastersController : Controller
     }
 
     [HttpGet]
+    [HasPermission(Permissions.Products.Update)]
     public async Task<IActionResult> Edit(
         Guid id,
         CancellationToken cancellationToken)
@@ -110,6 +117,7 @@ public abstract class CatalogMastersController : Controller
     }
 
     [HttpPost]
+    [HasPermission(Permissions.Products.Update)]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(
         Guid id,
@@ -148,6 +156,7 @@ public abstract class CatalogMastersController : Controller
     }
 
     [HttpGet]
+    [HasPermission(Permissions.Products.Delete)]
     public async Task<IActionResult> Delete(
         Guid id,
         CancellationToken cancellationToken)
@@ -165,6 +174,7 @@ public abstract class CatalogMastersController : Controller
     }
 
     [HttpPost, ActionName("Delete")]
+    [HasPermission(Permissions.Products.Delete)]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(
         Guid id,

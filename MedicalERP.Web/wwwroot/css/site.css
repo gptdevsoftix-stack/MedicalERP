@@ -1,4 +1,4 @@
-﻿:root { --medicalerp-accent: #7367f0; }
+:root { --medicalerp-accent: #7367f0; }
 body { font-family: "Public Sans", sans-serif; }
 .app-brand-text { color: #4b465c; letter-spacing: 0; }
 .menu .app-brand.demo { height: 64px; }
@@ -11,3 +11,22 @@ body { font-family: "Public Sans", sans-serif; }
 .hero-card { border: 0; background: linear-gradient(135deg, #ffffff 0%, #eef1ff 100%); }
 .hero-card h1 { font-size: 1.75rem; color: #4b465c; }
 .hero-card p { color: #6f6b7d; max-width: 760px; }
+
+.dark-style .app-brand-text,
+.dark-style .medical-page-title h1,
+.dark-style .hero-card h1 {
+    color: #d7d6de;
+}
+
+.dark-style .medical-page-title p,
+.dark-style .hero-card p {
+    color: #b6bee3;
+}
+
+.dark-style .hero-card {
+    background: linear-gradient(135deg, #2f3349 0%, #25293c 100%);
+}
+
+#theme-selector {
+    min-width: 6.5rem;
+}
