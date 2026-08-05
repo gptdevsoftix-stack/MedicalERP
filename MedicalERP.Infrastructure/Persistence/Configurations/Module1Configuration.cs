@@ -151,3 +151,86 @@ public sealed class CategoryConfiguration
             .OnDelete(DeleteBehavior.Restrict);
     }
 }
+
+public sealed class ProductBrandConfiguration
+    : IEntityTypeConfiguration<ProductBrand>
+{
+    public void Configure(EntityTypeBuilder<ProductBrand> builder)
+    {
+        builder.ToTable("ProductBrands");
+        builder.ConfigureBase();
+        builder.Property(x => x.Name).HasMaxLength(150).IsRequired();
+        builder.Property(x => x.Code).HasMaxLength(50).IsRequired();
+        builder.HasIndex(x => new { x.CompanyId, x.Code }).IsUnique();
+        builder.HasOne<Company>().WithMany().HasForeignKey(x => x.CompanyId).OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
+public sealed class ManufacturerConfiguration
+    : IEntityTypeConfiguration<Manufacturer>
+{
+    public void Configure(EntityTypeBuilder<Manufacturer> builder)
+    {
+        builder.ToTable("Manufacturers");
+        builder.ConfigureBase();
+        builder.Property(x => x.Name).HasMaxLength(150).IsRequired();
+        builder.Property(x => x.Code).HasMaxLength(50).IsRequired();
+        builder.Property(x => x.LicenseNumber).HasMaxLength(80);
+        builder.HasIndex(x => new { x.CompanyId, x.Code }).IsUnique();
+        builder.HasOne<Company>().WithMany().HasForeignKey(x => x.CompanyId).OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
+public sealed class GenericMedicineConfiguration
+    : IEntityTypeConfiguration<GenericMedicine>
+{
+    public void Configure(EntityTypeBuilder<GenericMedicine> builder)
+    {
+        builder.ToTable("GenericMedicines");
+        builder.ConfigureBase();
+        builder.Property(x => x.Name).HasMaxLength(150).IsRequired();
+        builder.Property(x => x.Description).HasMaxLength(500);
+        builder.HasOne<Company>().WithMany().HasForeignKey(x => x.CompanyId).OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
+public sealed class DosageFormConfiguration
+    : IEntityTypeConfiguration<DosageForm>
+{
+    public void Configure(EntityTypeBuilder<DosageForm> builder)
+    {
+        builder.ToTable("DosageForms");
+        builder.ConfigureBase();
+        builder.Property(x => x.Name).HasMaxLength(150).IsRequired();
+        builder.Property(x => x.Code).HasMaxLength(50).IsRequired();
+        builder.HasIndex(x => new { x.CompanyId, x.Code }).IsUnique();
+        builder.HasOne<Company>().WithMany().HasForeignKey(x => x.CompanyId).OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
+public sealed class StrengthConfiguration
+    : IEntityTypeConfiguration<Strength>
+{
+    public void Configure(EntityTypeBuilder<Strength> builder)
+    {
+        builder.ToTable("Strengths");
+        builder.ConfigureBase();
+        builder.Property(x => x.Name).HasMaxLength(150).IsRequired();
+        builder.Property(x => x.Value).HasColumnType("decimal(18,4)");
+        builder.Property(x => x.MeasurementUnit).HasMaxLength(40);
+        builder.HasOne<Company>().WithMany().HasForeignKey(x => x.CompanyId).OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
+public sealed class UnitConfiguration
+    : IEntityTypeConfiguration<Unit>
+{
+    public void Configure(EntityTypeBuilder<Unit> builder)
+    {
+        builder.ToTable("Units");
+        builder.ConfigureBase();
+        builder.Property(x => x.Name).HasMaxLength(150).IsRequired();
+        builder.Property(x => x.Symbol).HasMaxLength(20).IsRequired();
+        builder.HasOne<Company>().WithMany().HasForeignKey(x => x.CompanyId).OnDelete(DeleteBehavior.Restrict);
+    }
+}

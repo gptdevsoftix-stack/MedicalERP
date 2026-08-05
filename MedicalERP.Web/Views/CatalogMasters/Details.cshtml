@@ -1,0 +1,57 @@
+@model MedicalERP.Domain.DTOs.CatalogMasterDto
+@using MedicalERP.Domain.Enums
+
+@{
+    ViewData["Title"] = $"{ViewBag.SingularTitle} Details";
+    var masterType = (CatalogMasterType)ViewBag.MasterType;
+    var companyContextId = ViewBag.CompanyContextId as string;
+}
+
+<h2>@ViewBag.SingularTitle Details</h2>
+
+<div class="card">
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-3">Name</dt>
+            <dd class="col-sm-9">@Model.Name</dd>
+
+            @if (masterType is CatalogMasterType.ProductBrand or CatalogMasterType.Manufacturer or CatalogMasterType.DosageForm)
+            {
+                <dt class="col-sm-3">Code</dt>
+                <dd class="col-sm-9">@Model.Code</dd>
+            }
+            @if (masterType == CatalogMasterType.Manufacturer)
+            {
+                <dt class="col-sm-3">License Number</dt>
+                <dd class="col-sm-9">@(Model.LicenseNumber ?? "-")</dd>
+            }
+            @if (masterType == CatalogMasterType.GenericMedicine)
+            {
+                <dt class="col-sm-3">Description</dt>
+                <dd class="col-sm-9">@(Model.Description ?? "-")</dd>
+            }
+            @if (masterType == CatalogMasterType.Strength)
+            {
+                <dt class="col-sm-3">Value</dt>
+                <dd class="col-sm-9">@(Model.Value?.ToString("0.####") ?? "-")</dd>
+                <dt class="col-sm-3">Measurement Unit</dt>
+                <dd class="col-sm-9">@(Model.MeasurementUnit ?? "-")</dd>
+            }
+            @if (masterType == CatalogMasterType.Unit)
+            {
+                <dt class="col-sm-3">Symbol</dt>
+                <dd class="col-sm-9">@Model.Symbol</dd>
+                <dt class="col-sm-3">Allows Decimal</dt>
+                <dd class="col-sm-9">@(Model.AllowsDecimal ? "Yes" : "No")</dd>
+            }
+
+            <dt class="col-sm-3">Status</dt>
+            <dd class="col-sm-9">@(Model.IsActive ? "Active" : "Inactive")</dd>
+        </dl>
+    </div>
+</div>
+
+<div class="mt-3">
+    <a asp-action="Edit" asp-route-id="@Model.Id" asp-route-companyContextId="@companyContextId" class="btn btn-primary">Edit</a>
+    <a asp-action="Index" asp-route-companyContextId="@companyContextId" class="btn btn-secondary">Back</a>
+</div>

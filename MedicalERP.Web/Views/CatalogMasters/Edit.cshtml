@@ -1,0 +1,25 @@
+@model MedicalERP.Domain.DTOs.CatalogMasterFormDto
+
+@{
+    ViewData["Title"] = $"Edit {ViewBag.SingularTitle}";
+    var companyContextId = ViewBag.CompanyContextId as string;
+}
+
+<h2>Edit @ViewBag.SingularTitle</h2>
+
+<form asp-action="Edit" asp-route-id="@Model.Id" method="post">
+    <input type="hidden" name="companyContextId" value="@companyContextId" />
+    <input asp-for="Id" type="hidden" />
+    <input asp-for="MasterType" type="hidden" />
+    <partial name="_CatalogMasterForm" model="Model" />
+    <div class="form-check mb-3">
+        <input asp-for="IsActive" class="form-check-input" />
+        <label asp-for="IsActive" class="form-check-label"></label>
+    </div>
+    <button type="submit" class="btn btn-primary">Update</button>
+    <a asp-action="Index" asp-route-companyContextId="@companyContextId" class="btn btn-secondary">Cancel</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

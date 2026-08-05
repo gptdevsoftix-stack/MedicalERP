@@ -41,12 +41,16 @@ app.MapControllers();
 
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    await db.Database.MigrateAsync();
-    await IdentitySeeder.SeedAsync(
-        scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>(),
-        scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>(),
-        scope.ServiceProvider.GetRequiredService<IConfiguration>());
+    if (app.Configuration.GetValue<bool>("Database:AutoMigrate"))
+    {
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        await db.Database.MigrateAsync();
+
+        await IdentitySeeder.SeedAsync(
+            scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>(),
+            scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>(),
+            scope.ServiceProvider.GetRequiredService<IConfiguration>());
+    }
 }
 
 app.Run();

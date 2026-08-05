@@ -1,0 +1,122 @@
+@model IReadOnlyCollection<MedicalERP.Domain.DTOs.CatalogMasterDto>
+@using MedicalERP.Domain.Enums
+
+@{
+    ViewData["Title"] = ViewBag.Title;
+    var masterType = (CatalogMasterType)ViewBag.MasterType;
+    var companyContextId = ViewBag.CompanyContextId as string;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>@ViewBag.Title</h2>
+    <a asp-action="Create" asp-route-companyContextId="@companyContextId" class="btn btn-primary">Add @ViewBag.SingularTitle</a>
+</div>
+
+@if (TempData["SuccessMessage"] is not null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+
+<form method="get" class="row g-2 mb-3">
+    <input type="hidden" name="companyContextId" value="@companyContextId" />
+    <div class="col-md-5">
+        <input name="search" value="@ViewBag.Search" class="form-control" placeholder="Search name" />
+    </div>
+    <div class="col-auto">
+        <button class="btn btn-outline-primary">Search</button>
+        <a asp-action="Index" asp-route-companyContextId="@companyContextId" class="btn btn-outline-secondary">Clear</a>
+    </div>
+</form>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-striped align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    @if (masterType is CatalogMasterType.ProductBrand or CatalogMasterType.Manufacturer or CatalogMasterType.DosageForm)
+                    {
+                        <th>Code</th>
+                    }
+                    @if (masterType == CatalogMasterType.Manufacturer)
+                    {
+                        <th>License Number</th>
+                    }
+                    @if (masterType == CatalogMasterType.GenericMedicine)
+                    {
+                        <th>Description</th>
+                    }
+                    @if (masterType == CatalogMasterType.Strength)
+                    {
+                        <th>Value</th>
+                        <th>Measurement Unit</th>
+                    }
+                    @if (masterType == CatalogMasterType.Unit)
+                    {
+                        <th>Symbol</th>
+                        <th>Allows Decimal</th>
+                    }
+                    <th>Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Count == 0)
+                {
+                    <tr>
+                        <td colspan="6" class="text-center py-4">No records found.</td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var record in Model)
+                    {
+                        <tr>
+                            <td>@record.Name</td>
+                            @if (masterType is CatalogMasterType.ProductBrand or CatalogMasterType.Manufacturer or CatalogMasterType.DosageForm)
+                            {
+                                <td>@record.Code</td>
+                            }
+                            @if (masterType == CatalogMasterType.Manufacturer)
+                            {
+                                <td>@(record.LicenseNumber ?? "-")</td>
+                            }
+                            @if (masterType == CatalogMasterType.GenericMedicine)
+                            {
+                                <td>@(record.Description ?? "-")</td>
+                            }
+                            @if (masterType == CatalogMasterType.Strength)
+                            {
+                                <td>@(record.Value?.ToString("0.####") ?? "-")</td>
+                                <td>@(record.MeasurementUnit ?? "-")</td>
+                            }
+                            @if (masterType == CatalogMasterType.Unit)
+                            {
+                                <td>@record.Symbol</td>
+                                <td>@(record.AllowsDecimal ? "Yes" : "No")</td>
+                            }
+                            <td>
+                                @if (record.IsActive)
+                                {
+                                    <span class="badge bg-success">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Inactive</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <a asp-action="Details" asp-route-id="@record.Id" asp-route-companyContextId="@companyContextId" class="btn btn-sm btn-outline-info">Details</a>
+                                <a asp-action="Edit" asp-route-id="@record.Id" asp-route-companyContextId="@companyContextId" class="btn btn-sm btn-outline-primary">Edit</a>
+                                @if (record.IsActive)
+                                {
+                                    <a asp-action="Delete" asp-route-id="@record.Id" asp-route-companyContextId="@companyContextId" class="btn btn-sm btn-outline-danger">Deactivate</a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

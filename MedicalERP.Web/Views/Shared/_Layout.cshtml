@@ -25,8 +25,18 @@
     <link rel="stylesheet" href="~/assets/vendor/fonts/fontawesome.css" />
     <link rel="stylesheet" href="~/assets/vendor/fonts/tabler-icons.css" />
     <link rel="stylesheet" href="~/assets/vendor/fonts/flag-icons.css" />
-    <link rel="stylesheet" href="~/assets/vendor/css/rtl/core.css" class="template-customizer-core-css" />
-    <link rel="stylesheet" href="~/assets/vendor/css/rtl/theme-default.css" class="template-customizer-theme-css" />
+    <link id="template-core-css"
+          rel="stylesheet"
+          href="~/assets/vendor/css/rtl/core.css"
+          data-light-href="@Url.Content("~/assets/vendor/css/rtl/core.css")"
+          data-dark-href="@Url.Content("~/assets/vendor/css/rtl/core-dark.css")"
+          class="template-customizer-core-css" />
+    <link id="template-theme-css"
+          rel="stylesheet"
+          href="~/assets/vendor/css/rtl/theme-default.css"
+          data-light-href="@Url.Content("~/assets/vendor/css/rtl/theme-default.css")"
+          data-dark-href="@Url.Content("~/assets/vendor/css/rtl/theme-default-dark.css")"
+          class="template-customizer-theme-css" />
     <link rel="stylesheet" href="~/assets/css/demo.css" />
     <link rel="stylesheet" href="~/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
     <link rel="stylesheet" href="~/assets/vendor/libs/node-waves/node-waves.css" />
@@ -72,6 +82,24 @@
                     <li class="menu-item@(currentPath.Contains("/Categories") ? " active" : "")">
                         <a asp-controller="Categories" asp-action="Index" class="menu-link"><i class="menu-icon tf-icons ti ti-building-store"></i><div>Categories</div></a>
                     </li>
+                    <li class="menu-item@(currentPath.Contains("/ProductBrands") ? " active" : "")">
+                        <a asp-controller="ProductBrands" asp-action="Index" class="menu-link"><i class="menu-icon tf-icons ti ti-tag"></i><div>Product Brands</div></a>
+                    </li>
+                    <li class="menu-item@(currentPath.Contains("/Manufacturers") ? " active" : "")">
+                        <a asp-controller="Manufacturers" asp-action="Index" class="menu-link"><i class="menu-icon tf-icons ti ti-building-factory"></i><div>Manufacturers</div></a>
+                    </li>
+                    <li class="menu-item@(currentPath.Contains("/GenericMedicines") ? " active" : "")">
+                        <a asp-controller="GenericMedicines" asp-action="Index" class="menu-link"><i class="menu-icon tf-icons ti ti-pill"></i><div>Generic Medicines</div></a>
+                    </li>
+                    <li class="menu-item@(currentPath.Contains("/DosageForms") ? " active" : "")">
+                        <a asp-controller="DosageForms" asp-action="Index" class="menu-link"><i class="menu-icon tf-icons ti ti-vaccine-bottle"></i><div>Dosage Forms</div></a>
+                    </li>
+                    <li class="menu-item@(currentPath.Contains("/Strengths") ? " active" : "")">
+                        <a asp-controller="Strengths" asp-action="Index" class="menu-link"><i class="menu-icon tf-icons ti ti-ruler-measure"></i><div>Strengths</div></a>
+                    </li>
+                    <li class="menu-item@(currentPath.Contains("/Units") ? " active" : "")">
+                        <a asp-controller="Units" asp-action="Index" class="menu-link"><i class="menu-icon tf-icons ti ti-scale"></i><div>Units</div></a>
+                    </li>
                     <li class="menu-item@(currentPath.Contains("/Warehouses") ? " active" : "")">
                         <a asp-controller="Warehouses" asp-action="Index" class="menu-link"><i class="menu-icon tf-icons ti ti-building-warehouse"></i><div>Warehouses</div></a>
                     </li>
@@ -99,6 +127,14 @@
                             </div>
                         </div>
                         <ul class="navbar-nav flex-row align-items-center ms-auto">
+                            <li class="nav-item me-3">
+                                <select id="theme-selector"
+                                        class="form-select form-select-sm"
+                                        aria-label="Select theme">
+                                    <option value="light">Light</option>
+                                    <option value="dark">Dark</option>
+                                </select>
+                            </li>
                             <li class="nav-item me-3"><span class="text-muted small">@userName</span></li>
                             <li class="nav-item navbar-dropdown dropdown-user dropdown">
                                 <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">

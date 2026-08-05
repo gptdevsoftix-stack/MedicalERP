@@ -90,6 +90,8 @@ public static class DependencyInjection
         services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<ICategoryService, CategoryService>();
+        services.AddScoped<ICatalogMasterRepository, CatalogMasterRepository>();
+        services.AddScoped<ICatalogMasterService, CatalogMasterService>();
         return services;
     }
 }

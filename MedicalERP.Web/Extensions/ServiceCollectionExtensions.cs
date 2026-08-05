@@ -17,6 +17,11 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection AddBackgroundJobServices(this IServiceCollection services, IConfiguration configuration)
     {
+        if (!configuration.GetValue<bool>("BackgroundJobs:Enabled"))
+        {
+            return services;
+        }
+
         services.AddHangfire(config => config.UseSqlServerStorage(configuration.GetConnectionString("DefaultConnection"), new SqlServerStorageOptions { PrepareSchemaIfNecessary = true }));
         services.AddHangfireServer();
         return services;
