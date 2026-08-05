@@ -15,14 +15,14 @@ namespace MedicalERP.Infrastructure.Repositories
         }
 
         public async Task<List<Category>> GetAllAsync(
-            Guid companyId,
+            Guid? companyId,
             string? search,
             CancellationToken cancellationToken = default)
         {
             var query = _context.Categories
                 .AsNoTracking()
                 .Include(x => x.ParentCategory)
-                .Where(x => x.CompanyId == companyId);
+                .Where(x => !companyId.HasValue || x.CompanyId == companyId.Value);
 
             if (!string.IsNullOrWhiteSpace(search))
             {
@@ -41,14 +41,14 @@ namespace MedicalERP.Infrastructure.Repositories
 
         public Task<Category?> GetByIdAsync(
             Guid id,
-            Guid companyId,
+            Guid? companyId,
             CancellationToken cancellationToken = default)
         {
             return _context.Categories
                 .Include(x => x.ParentCategory)
                 .FirstOrDefaultAsync(
                     x => x.Id == id &&
-                         x.CompanyId == companyId,
+                         (!companyId.HasValue || x.CompanyId == companyId.Value),
                     cancellationToken);
         }
 

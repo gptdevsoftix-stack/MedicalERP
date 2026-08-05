@@ -24,7 +24,7 @@ namespace MedicalERP.Application.Services
             string? search,
             CancellationToken cancellationToken = default)
         {
-            var companyId = _companyContext.RequireCompanyId();
+            var companyId = _companyContext.CompanyId;
 
             var categories = await _repository.GetAllAsync(
                 companyId,
@@ -38,7 +38,7 @@ namespace MedicalERP.Application.Services
             Guid id,
             CancellationToken cancellationToken = default)
         {
-            var companyId = _companyContext.RequireCompanyId();
+            var companyId = _companyContext.CompanyId;
 
             var category = await _repository.GetByIdAsync(
                 id,
@@ -52,7 +52,7 @@ namespace MedicalERP.Application.Services
             Guid id,
             CancellationToken cancellationToken = default)
         {
-            var companyId = _companyContext.RequireCompanyId();
+            var companyId = _companyContext.CompanyId;
 
             var category = await _repository.GetByIdAsync(
                 id,

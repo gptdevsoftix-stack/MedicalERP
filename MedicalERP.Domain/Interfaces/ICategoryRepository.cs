@@ -8,13 +8,13 @@ namespace MedicalERP.Domain.Interfaces
     public interface ICategoryRepository
     {
         Task<List<Category>> GetAllAsync(
-            Guid companyId,
+            Guid? companyId,
             string? search,
             CancellationToken cancellationToken = default);
 
         Task<Category?> GetByIdAsync(
             Guid id,
-            Guid companyId,
+            Guid? companyId,
             CancellationToken cancellationToken = default);
 
         Task<bool> CodeExistsAsync(
