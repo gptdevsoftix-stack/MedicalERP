@@ -1,0 +1,113 @@
+@model IReadOnlyCollection<MedicalERP.Domain.DTOs.StoreProductListDto>
+
+@{
+    ViewData["Title"] = "Store Products";
+    var storeId = ViewBag.StoreId as Guid?;
+    var productId = ViewBag.ProductId as Guid?;
+    var search = ViewBag.Search as string;
+    var companyContextId = ViewBag.CompanyContextId as string;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Store Products</h2>
+    <a asp-action="Create"
+       asp-route-storeId="@storeId"
+       asp-route-productId="@productId"
+       asp-route-companyContextId="@companyContextId"
+       class="btn btn-primary">
+        Add Store Product
+    </a>
+</div>
+
+@if (TempData["SuccessMessage"] is not null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+
+<form method="get" class="row g-2 mb-3">
+    <input type="hidden" name="companyContextId" value="@companyContextId" />
+    <div class="col-md-3">
+        <select name="storeId" asp-items="ViewBag.Stores" class="form-select">
+            <option value="">All stores</option>
+        </select>
+    </div>
+    <div class="col-md-3">
+        <select name="productId" asp-items="ViewBag.Products" class="form-select">
+            <option value="">All products</option>
+        </select>
+    </div>
+    <div class="col-md-3">
+        <input name="search" value="@search" class="form-control" placeholder="Search store or product" />
+    </div>
+    <div class="col-auto">
+        <button class="btn btn-outline-primary">Search</button>
+        <a asp-action="Index" asp-route-companyContextId="@companyContextId" class="btn btn-outline-secondary">Clear</a>
+    </div>
+</form>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-striped align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Store</th>
+                    <th>Product</th>
+                    <th>Code</th>
+                    <th>Sale Price</th>
+                    <th>Wholesale</th>
+                    <th>Minimum</th>
+                    <th>Reorder</th>
+                    <th>Sale</th>
+                    <th>Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Count == 0)
+                {
+                    <tr>
+                        <td colspan="10" class="text-center py-4">No store products found.</td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.StoreName</td>
+                            <td>@item.ProductName</td>
+                            <td>@item.ProductCode</td>
+                            <td>@item.SalePrice.ToString("0.##")</td>
+                            <td>@(item.WholesalePrice?.ToString("0.##") ?? "-")</td>
+                            <td>@(item.MinimumSalePrice?.ToString("0.##") ?? "-")</td>
+                            <td>@item.ReorderLevel.ToString("0.##") / @item.ReorderQuantity.ToString("0.##")</td>
+                            <td>@(item.IsAvailableForSale ? "Yes" : "No")</td>
+                            <td>
+                                <span class="badge bg-@(item.IsActive ? "success" : "secondary")">
+                                    @(item.IsActive ? "Active" : "Inactive")
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                <a asp-action="Edit"
+                                   asp-route-id="@item.Id"
+                                   asp-route-companyContextId="@companyContextId"
+                                   class="btn btn-sm btn-outline-primary">
+                                    Edit
+                                </a>
+                                @if (item.IsActive)
+                                {
+                                    <a asp-action="Delete"
+                                       asp-route-id="@item.Id"
+                                       asp-route-companyContextId="@companyContextId"
+                                       class="btn btn-sm btn-outline-danger">
+                                        Deactivate
+                                    </a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,24 @@
+@model MedicalERP.Domain.DTOs.StoreProductFormDto
+
+@{
+    ViewData["Title"] = "Deactivate Store Product";
+    var companyContextId = ViewBag.CompanyContextId as string;
+}
+
+<h2>Deactivate Store Product</h2>
+
+<div class="alert alert-warning">
+    Are you sure you want to deactivate this store-product price setup?
+</div>
+
+<form asp-action="Delete" asp-route-id="@Model.Id" method="post">
+    <input type="hidden" name="companyContextId" value="@companyContextId" />
+    <button type="submit" class="btn btn-danger">Deactivate</button>
+    <a asp-action="Index"
+       asp-route-storeId="@Model.StoreId"
+       asp-route-productId="@Model.ProductId"
+       asp-route-companyContextId="@companyContextId"
+       class="btn btn-secondary">
+        Cancel
+    </a>
+</form>

@@ -1,0 +1,30 @@
+@model MedicalERP.Domain.DTOs.ProductBarcodeFormDto
+
+<div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+<div class="mb-3">
+    <label asp-for="ProductId" class="form-label"></label>
+    <select asp-for="ProductId" asp-items="ViewBag.Products" class="form-select">
+        <option value="">Select product</option>
+    </select>
+    <span asp-validation-for="ProductId" class="text-danger"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="ProductUnitId" class="form-label"></label>
+    <select asp-for="ProductUnitId" asp-items="ViewBag.ProductUnits" class="form-select">
+        <option value="">Base/default unit</option>
+    </select>
+    <span asp-validation-for="ProductUnitId" class="text-danger"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="Barcode" class="form-label"></label>
+    <input asp-for="Barcode" class="form-control" />
+    <span asp-validation-for="Barcode" class="text-danger"></span>
+</div>
+
+<div class="form-check mb-3">
+    <input asp-for="IsPrimary" class="form-check-input" />
+    <label asp-for="IsPrimary" class="form-check-label"></label>
+</div>

@@ -1,0 +1,100 @@
+@model IReadOnlyCollection<MedicalERP.Domain.DTOs.ProductBarcodeListDto>
+
+@{
+    ViewData["Title"] = "Product Barcodes";
+    var productId = ViewBag.ProductId as Guid?;
+    var search = ViewBag.Search as string;
+    var companyContextId = ViewBag.CompanyContextId as string;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Product Barcodes</h2>
+    <a asp-action="Create"
+       asp-route-productId="@productId"
+       asp-route-companyContextId="@companyContextId"
+       class="btn btn-primary">
+        Add Barcode
+    </a>
+</div>
+
+@if (TempData["SuccessMessage"] is not null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+
+<form method="get" class="row g-2 mb-3">
+    <input type="hidden" name="companyContextId" value="@companyContextId" />
+    <div class="col-md-4">
+        <select name="productId" asp-items="ViewBag.Products" class="form-select">
+            <option value="">All products</option>
+        </select>
+    </div>
+    <div class="col-md-4">
+        <input name="search" value="@search" class="form-control" placeholder="Search barcode or product" />
+    </div>
+    <div class="col-auto">
+        <button class="btn btn-outline-primary">Search</button>
+        <a asp-action="Index" asp-route-companyContextId="@companyContextId" class="btn btn-outline-secondary">Clear</a>
+    </div>
+</form>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-striped align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Code</th>
+                    <th>Unit</th>
+                    <th>Barcode</th>
+                    <th>Primary</th>
+                    <th>Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Count == 0)
+                {
+                    <tr>
+                        <td colspan="7" class="text-center py-4">No barcodes found.</td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var barcode in Model)
+                    {
+                        <tr>
+                            <td>@barcode.ProductName</td>
+                            <td>@barcode.ProductCode</td>
+                            <td>@(barcode.ProductUnitName ?? "-")</td>
+                            <td>@barcode.Barcode</td>
+                            <td>@(barcode.IsPrimary ? "Yes" : "No")</td>
+                            <td>
+                                <span class="badge bg-@(barcode.IsActive ? "success" : "secondary")">
+                                    @(barcode.IsActive ? "Active" : "Inactive")
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                <a asp-action="Edit"
+                                   asp-route-id="@barcode.Id"
+                                   asp-route-companyContextId="@companyContextId"
+                                   class="btn btn-sm btn-outline-primary">
+                                    Edit
+                                </a>
+                                @if (barcode.IsActive)
+                                {
+                                    <a asp-action="Delete"
+                                       asp-route-id="@barcode.Id"
+                                       asp-route-companyContextId="@companyContextId"
+                                       class="btn btn-sm btn-outline-danger">
+                                        Deactivate
+                                    </a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

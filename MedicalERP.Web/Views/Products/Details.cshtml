@@ -116,6 +116,22 @@
         Units
     </a>
 
+    <a asp-controller="ProductBarcodes"
+       asp-action="Index"
+       asp-route-productId="@Model.Id"
+       asp-route-companyContextId="@companyContextId"
+       class="btn btn-outline-primary">
+        Barcodes
+    </a>
+
+    <a asp-controller="StoreProducts"
+       asp-action="Index"
+       asp-route-productId="@Model.Id"
+       asp-route-companyContextId="@companyContextId"
+       class="btn btn-outline-primary">
+        Store Products
+    </a>
+
     <a asp-action="Index"
        asp-route-companyContextId="@companyContextId"
        class="btn btn-secondary">

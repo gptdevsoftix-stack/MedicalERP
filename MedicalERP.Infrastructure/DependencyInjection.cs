@@ -96,6 +96,10 @@ public static class DependencyInjection
         services.AddScoped<IProductService, ProductService>();
         services.AddScoped<IProductUnitRepository, ProductUnitRepository>();
         services.AddScoped<IProductUnitService, ProductUnitService>();
+        services.AddScoped<IProductBarcodeRepository, ProductBarcodeRepository>();
+        services.AddScoped<IProductBarcodeService, ProductBarcodeService>();
+        services.AddScoped<IStoreProductRepository, StoreProductRepository>();
+        services.AddScoped<IStoreProductService, StoreProductService>();
         return services;
     }
 }

@@ -1,0 +1,23 @@
+@model MedicalERP.Domain.DTOs.ProductBarcodeFormDto
+
+@{
+    ViewData["Title"] = "Deactivate Product Barcode";
+    var companyContextId = ViewBag.CompanyContextId as string;
+}
+
+<h2>Deactivate Product Barcode</h2>
+
+<div class="alert alert-warning">
+    Are you sure you want to deactivate <strong>@Model.Barcode</strong>?
+</div>
+
+<form asp-action="Delete" asp-route-id="@Model.Id" method="post">
+    <input type="hidden" name="companyContextId" value="@companyContextId" />
+    <button type="submit" class="btn btn-danger">Deactivate</button>
+    <a asp-action="Index"
+       asp-route-productId="@Model.ProductId"
+       asp-route-companyContextId="@companyContextId"
+       class="btn btn-secondary">
+        Cancel
+    </a>
+</form>
