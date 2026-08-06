@@ -1,10 +1,20 @@
 ﻿@using System.Security.Claims
+@using MedicalERP.Application.Permissions
 @{
     var currentPath = Context.Request.Path.Value ?? "/";
     var companyContextId = Context.Request.Query["companyContextId"].FirstOrDefault();
     var userName = User.Identity?.IsAuthenticated == true ? User.Identity.Name : "Guest";
     var userRoles = User.FindAll(ClaimTypes.Role).Select(r => r.Value).ToArray();
     var avatarUrl = $"https://api.dicebear.com/6.x/initials/svg?seed={Uri.EscapeDataString(userName ?? "MedicalERP")}";
+    bool HasPermission(string permission) => User.HasClaim(PermissionClaimTypes.Permission, permission);
+    var canViewCompanies = HasPermission(Permissions.Companies.View);
+    var canViewStores = HasPermission(Permissions.Stores.View);
+    var canViewCategories = HasPermission(Permissions.Categories.View);
+    var canViewProducts = HasPermission(Permissions.Products.View);
+    var canViewWarehouses = HasPermission(Permissions.Stores.View);
+    var canViewUsers = HasPermission(Permissions.Users.View);
+    var canViewRoles = HasPermission(Permissions.Roles.View);
+    var canViewCatalog = canViewCategories || canViewProducts;
     var catalogActive = currentPath.Contains("/Products")
         || currentPath.Contains("/Categories")
         || currentPath.Contains("/ProductBrands")
@@ -82,54 +92,80 @@
                     <li class="menu-item@(currentPath == "/" || currentPath.Contains("/Home") ? " active" : "")">
                         <a asp-controller="Home" asp-action="Index" class="menu-link"><i class="menu-icon tf-icons ti ti-home"></i><div>Dashboard</div></a>
                     </li>
-                    <li class="menu-item@(currentPath.Contains("/Companies") ? " active" : "")">
-                        <a asp-controller="Companies" asp-action="Index" class="menu-link"><i class="menu-icon tf-icons ti ti-building-skyscraper"></i><div>Companies</div></a>
-                    </li>
-                    <li class="menu-item@(currentPath.Contains("/Stores") ? " active" : "")">
-                        <a asp-controller="Stores" asp-action="Index" class="menu-link"><i class="menu-icon tf-icons ti ti-building-store"></i><div>Stores</div></a>
-                    </li>
-                    <li class="menu-item@(currentPath.Contains("/Categories") ? " active" : "")">
-                        <a asp-controller="Categories" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><i class="menu-icon tf-icons ti ti-building-store"></i><div>Categories</div></a>
-                    </li>
-                    <li class="menu-item@(currentPath.Contains("/Products") ? " active" : "")">
-                        <a asp-controller="Products" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><i class="menu-icon tf-icons ti ti-building-store"></i><div>Products</div></a>
-                    </li>
-                    <li class="menu-item@(catalogActive ? " active open" : "")">
-                        <a href="javascript:void(0);" class="menu-link menu-toggle">
-                            <i class="menu-icon tf-icons ti ti-folder"></i>
-                            <div>Catalog</div>
-                        </a>
-                        <ul class="menu-sub">
-                            <li class="menu-item@(currentPath.Contains("/ProductBrands") ? " active" : "")">
-                                <a asp-controller="ProductBrands" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><div>Product Brands</div></a>
-                            </li>
-                            <li class="menu-item@(currentPath.Contains("/Manufacturers") ? " active" : "")">
-                                <a asp-controller="Manufacturers" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><div>Manufacturers</div></a>
-                            </li>
-                            <li class="menu-item@(currentPath.Contains("/GenericMedicines") ? " active" : "")">
-                                <a asp-controller="GenericMedicines" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><div>Generic Medicines</div></a>
-                            </li>
-                            <li class="menu-item@(currentPath.Contains("/DosageForms") ? " active" : "")">
-                                <a asp-controller="DosageForms" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><div>Dosage Forms</div></a>
-                            </li>
-                            <li class="menu-item@(currentPath.Contains("/Strengths") ? " active" : "")">
-                                <a asp-controller="Strengths" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><div>Strengths</div></a>
-                            </li>
-                            <li class="menu-item@(currentPath.Contains("/Units") ? " active" : "")">
-                                <a asp-controller="Units" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><div>Units</div></a>
-                            </li>
-                        </ul>
-                    </li>
-                    
-                    <li class="menu-item@(currentPath.Contains("/Warehouses") ? " active" : "")">
-                        <a asp-controller="Warehouses" asp-action="Index" class="menu-link"><i class="menu-icon tf-icons ti ti-building-warehouse"></i><div>Warehouses</div></a>
-                    </li>
-                    <li class="menu-item@(currentPath.Contains("/Users") ? " active" : "")">
-                        <a asp-controller="Users" asp-action="Index" class="menu-link"><i class="menu-icon tf-icons ti ti-users"></i><div>Users</div></a>
-                    </li>
-                    <li class="menu-item@(currentPath.Contains("/Roles") ? " active" : "")">
-                        <a asp-controller="Roles" asp-action="Index" class="menu-link"><i class="menu-icon tf-icons ti ti-lock"></i><div>Roles</div></a>
-                    </li>
+                    @if (canViewCompanies)
+                    {
+                        <li class="menu-item@(currentPath.Contains("/Companies") ? " active" : "")">
+                            <a asp-controller="Companies" asp-action="Index" class="menu-link"><i class="menu-icon tf-icons ti ti-building-skyscraper"></i><div>Companies</div></a>
+                        </li>
+                    }
+                    @if (canViewStores)
+                    {
+                        <li class="menu-item@(currentPath.Contains("/Stores") ? " active" : "")">
+                            <a asp-controller="Stores" asp-action="Index" class="menu-link"><i class="menu-icon tf-icons ti ti-building-store"></i><div>Stores</div></a>
+                        </li>
+                    }
+                    @if (canViewCatalog)
+                    {
+                        <li class="menu-item@(catalogActive ? " active open" : "")">
+                            <a href="javascript:void(0);" class="menu-link menu-toggle">
+                                <i class="menu-icon tf-icons ti ti-folder"></i>
+                                <div>Catalog</div>
+                            </a>
+                            <ul class="menu-sub">
+                                @if (canViewProducts)
+                                {
+                                    <li class="menu-item@(currentPath.Contains("/Products") ? " active" : "")">
+                                        <a asp-controller="Products" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><div>Products</div></a>
+                                    </li>
+                                }
+                                @if (canViewCategories)
+                                {
+                                    <li class="menu-item@(currentPath.Contains("/Categories") ? " active" : "")">
+                                        <a asp-controller="Categories" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><div>Categories</div></a>
+                                    </li>
+                                }
+                                @if (canViewProducts)
+                                {
+                                    <li class="menu-item@(currentPath.Contains("/ProductBrands") ? " active" : "")">
+                                        <a asp-controller="ProductBrands" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><div>Product Brands</div></a>
+                                    </li>
+                                    <li class="menu-item@(currentPath.Contains("/Manufacturers") ? " active" : "")">
+                                        <a asp-controller="Manufacturers" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><div>Manufacturers</div></a>
+                                    </li>
+                                    <li class="menu-item@(currentPath.Contains("/GenericMedicines") ? " active" : "")">
+                                        <a asp-controller="GenericMedicines" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><div>Generic Medicines</div></a>
+                                    </li>
+                                    <li class="menu-item@(currentPath.Contains("/DosageForms") ? " active" : "")">
+                                        <a asp-controller="DosageForms" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><div>Dosage Forms</div></a>
+                                    </li>
+                                    <li class="menu-item@(currentPath.Contains("/Strengths") ? " active" : "")">
+                                        <a asp-controller="Strengths" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><div>Strengths</div></a>
+                                    </li>
+                                    <li class="menu-item@(currentPath.Contains("/Units") ? " active" : "")">
+                                        <a asp-controller="Units" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><div>Units</div></a>
+                                    </li>
+                                }
+                            </ul>
+                        </li>
+                    }
+                    @if (canViewWarehouses)
+                    {
+                        <li class="menu-item@(currentPath.Contains("/Warehouses") ? " active" : "")">
+                            <a asp-controller="Warehouses" asp-action="Index" class="menu-link"><i class="menu-icon tf-icons ti ti-building-warehouse"></i><div>Warehouses</div></a>
+                        </li>
+                    }
+                    @if (canViewUsers)
+                    {
+                        <li class="menu-item@(currentPath.Contains("/Users") ? " active" : "")">
+                            <a asp-controller="Users" asp-action="Index" class="menu-link"><i class="menu-icon tf-icons ti ti-users"></i><div>Users</div></a>
+                        </li>
+                    }
+                    @if (canViewRoles)
+                    {
+                        <li class="menu-item@(currentPath.Contains("/Roles") ? " active" : "")">
+                            <a asp-controller="Roles" asp-action="Index" class="menu-link"><i class="menu-icon tf-icons ti ti-lock"></i><div>Roles</div></a>
+                        </li>
+                    }
                    @*  <li class="menu-header small text-uppercase"><span class="menu-header-text">API Endpoints</span></li>
                     <li class="menu-item"><a href="/api/companies" class="menu-link"><i class="menu-icon tf-icons ti ti-api"></i><div>Companies API</div></a></li>
                     <li class="menu-item"><a href="/api/stores" class="menu-link"><i class="menu-icon tf-icons ti ti-api"></i><div>Stores API</div></a></li> *@
