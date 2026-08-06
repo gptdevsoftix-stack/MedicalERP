@@ -1,0 +1,71 @@
+@model object
+@using MedicalERP.Domain.Common
+@{
+    var title = (string)ViewBag.Title;
+    var typeKey = (string)ViewBag.TypeKey;
+    var fields = (string[])ViewBag.Fields;
+    var labels = (Dictionary<string, string>)ViewBag.FieldLabels;
+    var entityType = (Type)ViewBag.EntityType;
+    var optionMaps = (Dictionary<string, Dictionary<string, string>>)ViewBag.OptionMaps;
+    var companyContextId = ViewBag.CompanyContextId as string;
+    var entity = (BaseEntity)Model;
+
+    string Display(string field)
+    {
+        var value = entityType.GetProperty(field)?.GetValue(Model);
+        var raw = value?.ToString();
+        if (!string.IsNullOrWhiteSpace(raw)
+            && optionMaps.TryGetValue(field, out var map)
+            && map.TryGetValue(raw, out var label))
+        {
+            return label;
+        }
+
+        return value switch
+        {
+            null => "-",
+            DateOnly date => date.ToString("yyyy-MM-dd"),
+            DateTimeOffset date => date.ToString("yyyy-MM-dd HH:mm"),
+            decimal number => number.ToString("0.####"),
+            bool flag => flag ? "Yes" : "No",
+            _ => value.ToString() ?? "-"
+        };
+    }
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-1">Deactivate @title Record</h4>
+        <p class="text-muted mb-0">This keeps the record in the database and marks it inactive.</p>
+    </div>
+    <a asp-action="Index"
+       asp-route-type="@typeKey"
+       asp-route-companyContextId="@companyContextId"
+       class="btn btn-label-secondary">
+        <i class="ti ti-arrow-left me-1"></i>Back
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="alert alert-warning">Are you sure you want to deactivate this record?</div>
+        <dl class="row mb-4">
+            @foreach (var field in fields.Take(8))
+            {
+                <dt class="col-sm-3">@labels[field]</dt>
+                <dd class="col-sm-9">@Display(field)</dd>
+            }
+            <dt class="col-sm-3">Active</dt>
+            <dd class="col-sm-9">@(entity.IsActive ? "Yes" : "No")</dd>
+        </dl>
+        <form asp-action="Delete" asp-route-type="@typeKey" asp-route-id="@entity.Id" method="post" class="d-flex gap-2">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="companyContextId" value="@companyContextId" />
+            <button type="submit" class="btn btn-danger"><i class="ti ti-trash me-1"></i>Deactivate</button>
+            <a asp-action="Index"
+               asp-route-type="@typeKey"
+               asp-route-companyContextId="@companyContextId"
+               class="btn btn-label-secondary">Cancel</a>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,33 @@
+@model MedicalERP.Application.Inventory.Dtos.ProductBatchListDto
+
+@{
+    ViewData["Title"] = "Deactivate Product Batch";
+    var companyContextId = ViewBag.CompanyContextId as string;
+}
+
+<h2>Deactivate Product Batch</h2>
+
+<div class="card">
+    <div class="card-body">
+        <div class="alert alert-warning">
+            Are you sure you want to deactivate this product batch?
+        </div>
+
+        <dl class="row">
+            <dt class="col-sm-3">Product</dt>
+            <dd class="col-sm-9">@Model.ProductName (@Model.ProductCode)</dd>
+            <dt class="col-sm-3">Warehouse</dt>
+            <dd class="col-sm-9">@Model.WarehouseName (@Model.WarehouseCode)</dd>
+            <dt class="col-sm-3">Batch Number</dt>
+            <dd class="col-sm-9">@Model.BatchNumber</dd>
+            <dt class="col-sm-3">Expiry Date</dt>
+            <dd class="col-sm-9">@(Model.ExpiryDate?.ToString("yyyy-MM-dd") ?? "-")</dd>
+        </dl>
+
+        <form asp-action="Delete" asp-route-id="@Model.Id" method="post">
+            <input type="hidden" name="companyContextId" value="@companyContextId" />
+            <button type="submit" class="btn btn-danger">Deactivate</button>
+            <a asp-action="Index" asp-route-companyContextId="@companyContextId" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>

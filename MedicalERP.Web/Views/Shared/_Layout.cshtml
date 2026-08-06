@@ -12,6 +12,7 @@
     var canViewCategories = HasPermission(Permissions.Categories.View);
     var canViewProducts = HasPermission(Permissions.Products.View);
     var canViewWarehouses = HasPermission(Permissions.Stores.View);
+    var canViewInventory = HasPermission(Permissions.Inventory.View);
     var canViewUsers = HasPermission(Permissions.Users.View);
     var canViewRoles = HasPermission(Permissions.Roles.View);
     var canViewCatalog = canViewCategories || canViewProducts;
@@ -26,6 +27,7 @@
         || currentPath.Contains("/ProductUnits")
         || currentPath.Contains("/ProductBarcodes")
         || currentPath.Contains("/StoreProducts");
+    var inventoryActive = currentPath.Contains("/InventoryCrud") || currentPath.Contains("/ProductBatches");
 }
 <!DOCTYPE html>
 <html lang="en"
@@ -164,6 +166,50 @@
                     {
                         <li class="menu-item@(currentPath.Contains("/Warehouses") ? " active" : "")">
                             <a asp-controller="Warehouses" asp-action="Index" class="menu-link"><i class="menu-icon tf-icons ti ti-building-warehouse"></i><div>Warehouses</div></a>
+                        </li>
+                    }
+                    @if (canViewInventory)
+                    {
+                        <li class="menu-item@(inventoryActive ? " active open" : "")">
+                            <a href="javascript:void(0);" class="menu-link menu-toggle">
+                                <i class="menu-icon tf-icons ti ti-packages"></i>
+                                <div>Inventory</div>
+                            </a>
+                            <ul class="menu-sub">
+                                <li class="menu-item@(currentPath.Contains("/ProductBatches") ? " active" : "")">
+                                    <a asp-controller="ProductBatches" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><div>Product Batches</div></a>
+                                </li>
+                                <li class="menu-item@(currentPath.Contains("/InventoryCrud") && Context.Request.Query["type"] == "InventoryStocks" ? " active" : "")">
+                                    <a asp-controller="InventoryCrud" asp-action="Index" asp-route-type="InventoryStocks" asp-route-companyContextId="@companyContextId" class="menu-link"><div>Inventory Stock</div></a>
+                                </li>
+                                <li class="menu-item@(currentPath.Contains("/InventoryCrud") && Context.Request.Query["type"] == "StockTransactions" ? " active" : "")">
+                                    <a asp-controller="InventoryCrud" asp-action="Index" asp-route-type="StockTransactions" asp-route-companyContextId="@companyContextId" class="menu-link"><div>Stock Transactions</div></a>
+                                </li>
+                                <li class="menu-item@(currentPath.Contains("/InventoryCrud") && Context.Request.Query["type"] == "StockAdjustments" ? " active" : "")">
+                                    <a asp-controller="InventoryCrud" asp-action="Index" asp-route-type="StockAdjustments" asp-route-companyContextId="@companyContextId" class="menu-link"><div>Stock Adjustments</div></a>
+                                </li>
+                                <li class="menu-item@(currentPath.Contains("/InventoryCrud") && Context.Request.Query["type"] == "StockAdjustmentItems" ? " active" : "")">
+                                    <a asp-controller="InventoryCrud" asp-action="Index" asp-route-type="StockAdjustmentItems" asp-route-companyContextId="@companyContextId" class="menu-link"><div>Adjustment Items</div></a>
+                                </li>
+                                <li class="menu-item@(currentPath.Contains("/InventoryCrud") && Context.Request.Query["type"] == "StockCounts" ? " active" : "")">
+                                    <a asp-controller="InventoryCrud" asp-action="Index" asp-route-type="StockCounts" asp-route-companyContextId="@companyContextId" class="menu-link"><div>Stock Counts</div></a>
+                                </li>
+                                <li class="menu-item@(currentPath.Contains("/InventoryCrud") && Context.Request.Query["type"] == "StockCountItems" ? " active" : "")">
+                                    <a asp-controller="InventoryCrud" asp-action="Index" asp-route-type="StockCountItems" asp-route-companyContextId="@companyContextId" class="menu-link"><div>Count Items</div></a>
+                                </li>
+                                <li class="menu-item@(currentPath.Contains("/InventoryCrud") && Context.Request.Query["type"] == "StockDisposals" ? " active" : "")">
+                                    <a asp-controller="InventoryCrud" asp-action="Index" asp-route-type="StockDisposals" asp-route-companyContextId="@companyContextId" class="menu-link"><div>Stock Disposals</div></a>
+                                </li>
+                                <li class="menu-item@(currentPath.Contains("/InventoryCrud") && Context.Request.Query["type"] == "StockDisposalItems" ? " active" : "")">
+                                    <a asp-controller="InventoryCrud" asp-action="Index" asp-route-type="StockDisposalItems" asp-route-companyContextId="@companyContextId" class="menu-link"><div>Disposal Items</div></a>
+                                </li>
+                                <li class="menu-item@(currentPath.Contains("/InventoryCrud") && Context.Request.Query["type"] == "ReasonCodes" ? " active" : "")">
+                                    <a asp-controller="InventoryCrud" asp-action="Index" asp-route-type="ReasonCodes" asp-route-companyContextId="@companyContextId" class="menu-link"><div>Reason Codes</div></a>
+                                </li>
+                                <li class="menu-item@(currentPath.Contains("/InventoryCrud") && Context.Request.Query["type"] == "NumberSequences" ? " active" : "")">
+                                    <a asp-controller="InventoryCrud" asp-action="Index" asp-route-type="NumberSequences" asp-route-companyContextId="@companyContextId" class="menu-link"><div>Number Sequences</div></a>
+                                </li>
+                            </ul>
                         </li>
                     }
                     @if (canViewUsers)

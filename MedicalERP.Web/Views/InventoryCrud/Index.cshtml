@@ -1,0 +1,128 @@
+@model IReadOnlyCollection<object>
+@using MedicalERP.Application.Permissions
+@using MedicalERP.Domain.Common
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    var title = (string)ViewBag.Title;
+    var typeKey = (string)ViewBag.TypeKey;
+    var fields = (string[])ViewBag.Fields;
+    var labels = (Dictionary<string, string>)ViewBag.FieldLabels;
+    var entityType = (Type)ViewBag.EntityType;
+    var definitions = (IReadOnlyCollection<SelectListItem>)ViewBag.Definitions;
+    var optionMaps = (Dictionary<string, Dictionary<string, string>>)ViewBag.OptionMaps;
+    var companyContextId = ViewBag.CompanyContextId as string;
+    var canWrite = User.HasClaim(PermissionClaimTypes.Permission, Permissions.Inventory.Adjust)
+        || User.HasClaim(PermissionClaimTypes.Permission, Permissions.Inventory.Count)
+        || User.HasClaim(PermissionClaimTypes.Permission, Permissions.Inventory.Dispose);
+
+    string Display(object record, string field)
+    {
+        var value = entityType.GetProperty(field)?.GetValue(record);
+        var raw = value?.ToString();
+        if (!string.IsNullOrWhiteSpace(raw)
+            && optionMaps.TryGetValue(field, out var map)
+            && map.TryGetValue(raw, out var label))
+        {
+            return label;
+        }
+
+        return value switch
+        {
+            null => "-",
+            DateOnly date => date.ToString("yyyy-MM-dd"),
+            DateTimeOffset date => date.ToString("yyyy-MM-dd HH:mm"),
+            decimal number => number.ToString("0.####"),
+            bool flag => flag ? "Yes" : "No",
+            _ => value.ToString() ?? "-"
+        };
+    }
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h4 class="mb-1">@title</h4>
+        <p class="text-muted mb-0">Inventory CRUD records</p>
+    </div>
+    <div class="d-flex gap-2">
+        <form asp-action="Index" method="get" class="d-flex gap-2">
+            <input type="hidden" name="companyContextId" value="@companyContextId" />
+            <select name="type" class="form-select" asp-items="definitions" onchange="this.form.submit()"></select>
+        </form>
+        @if (canWrite)
+        {
+            <a asp-action="Create"
+               asp-route-type="@typeKey"
+               asp-route-companyContextId="@companyContextId"
+               class="btn btn-primary">
+                <i class="ti ti-plus me-1"></i>Create
+            </a>
+        }
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] is string message)
+{
+    <div class="alert alert-success">@message</div>
+}
+
+<div class="card">
+    <div class="table-responsive text-nowrap">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    @foreach (var field in fields.Take(7))
+                    {
+                        <th>@labels[field]</th>
+                    }
+                    <th>Active</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Count == 0)
+                {
+                    <tr>
+                        <td colspan="@(fields.Take(7).Count() + 2)" class="text-center text-muted py-4">No records found.</td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var record in Model)
+                    {
+                        var entity = (BaseEntity)record;
+                        <tr>
+                            @foreach (var field in fields.Take(7))
+                            {
+                                <td>@Display(record, field)</td>
+                            }
+                            <td>
+                                <span class="badge bg-label-@(entity.IsActive ? "success" : "secondary")">@(entity.IsActive ? "Active" : "Inactive")</span>
+                            </td>
+                            <td class="text-end">
+                                @if (canWrite)
+                                {
+                                    <a asp-action="Edit"
+                                       asp-route-type="@typeKey"
+                                       asp-route-id="@entity.Id"
+                                       asp-route-companyContextId="@companyContextId"
+                                       class="btn btn-sm btn-icon btn-label-secondary"
+                                       title="Edit">
+                                        <i class="ti ti-pencil"></i>
+                                    </a>
+                                    <a asp-action="Delete"
+                                       asp-route-type="@typeKey"
+                                       asp-route-id="@entity.Id"
+                                       asp-route-companyContextId="@companyContextId"
+                                       class="btn btn-sm btn-icon btn-label-danger"
+                                       title="Delete">
+                                        <i class="ti ti-trash"></i>
+                                    </a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

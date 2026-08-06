@@ -1,0 +1,171 @@
+@model MedicalERP.Application.Common.PagedResult<MedicalERP.Application.Inventory.Dtos.ProductBatchListDto>
+
+@{
+    ViewData["Title"] = "Product Batches";
+    var productId = ViewBag.ProductId as Guid?;
+    var warehouseId = ViewBag.WarehouseId as Guid?;
+    var search = ViewBag.Search as string;
+    var isActive = ViewBag.IsActive as bool?;
+    var expiringBefore = ViewBag.ExpiringBefore as DateOnly?;
+    var companyContextId = ViewBag.CompanyContextId as string;
+    var totalPages = (int)Math.Ceiling(Model.TotalCount / (double)Model.PageSize);
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+        <h2 class="mb-1">Product Batches</h2>
+        <div class="text-muted">Batch records for the currently selected store.</div>
+    </div>
+    <a asp-action="Create" asp-route-companyContextId="@companyContextId" class="btn btn-primary">
+        Add Product Batch
+    </a>
+</div>
+
+@if (TempData["SuccessMessage"] is not null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+
+<form method="get" class="card card-body mb-3">
+    <input type="hidden" name="companyContextId" value="@companyContextId" />
+    <div class="row g-2 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label">Product</label>
+            <select name="productId" asp-items="ViewBag.Products" class="form-select">
+                <option value="">All products</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Warehouse</label>
+            <select name="warehouseId" asp-items="ViewBag.Warehouses" class="form-select">
+                <option value="">All warehouses</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Status</label>
+            <select name="isActive" class="form-select">
+                <option value="">All</option>
+                <option value="true" selected="@(isActive == true)">Active</option>
+                <option value="false" selected="@(isActive == false)">Inactive</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Expiring Before</label>
+            <input type="date" name="expiringBefore" value="@(expiringBefore?.ToString("yyyy-MM-dd"))" class="form-control" />
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Search</label>
+            <input name="search" value="@search" class="form-control" placeholder="Batch, product, warehouse" />
+        </div>
+        <div class="col-12 d-flex gap-2">
+            <button class="btn btn-outline-primary">Filter</button>
+            <a asp-action="Index" asp-route-companyContextId="@companyContextId" class="btn btn-outline-secondary">Clear</a>
+        </div>
+    </div>
+</form>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-striped align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Warehouse</th>
+                    <th>Batch</th>
+                    <th>Dates</th>
+                    <th>Cost</th>
+                    <th>Sale</th>
+                    <th>MRP</th>
+                    <th>Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Items.Count == 0)
+                {
+                    <tr>
+                        <td colspan="9" class="text-center py-4">No product batches found.</td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var batch in Model.Items)
+                    {
+                        <tr>
+                            <td>
+                                <div class="fw-semibold">@batch.ProductName</div>
+                                <small class="text-muted">@batch.ProductCode</small>
+                            </td>
+                            <td>
+                                <div>@(batch.WarehouseName ?? "Unassigned")</div>
+                                @if (!string.IsNullOrWhiteSpace(batch.WarehouseCode))
+                                {
+                                    <small class="text-muted">@batch.WarehouseCode</small>
+                                }
+                            </td>
+                            <td>@batch.BatchNumber</td>
+                            <td>
+                                <div>Received: @batch.ReceivedAt.ToString("yyyy-MM-dd")</div>
+                                <small class="text-muted">
+                                    Mfg: @(batch.ManufacturingDate?.ToString("yyyy-MM-dd") ?? "-")
+                                    | Exp: @(batch.ExpiryDate?.ToString("yyyy-MM-dd") ?? "-")
+                                </small>
+                            </td>
+                            <td>@batch.CostPrice.ToString("0.####")</td>
+                            <td>@batch.SalePrice.ToString("0.####")</td>
+                            <td>@(batch.MaximumRetailPrice?.ToString("0.####") ?? "-")</td>
+                            <td>
+                                @if (batch.IsExpired)
+                                {
+                                    <span class="badge bg-danger">Expired</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-@(batch.IsActive ? "success" : "secondary")">
+                                        @(batch.IsActive ? "Active" : "Inactive")
+                                    </span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <a asp-action="Edit"
+                                   asp-route-id="@batch.Id"
+                                   asp-route-companyContextId="@companyContextId"
+                                   class="btn btn-sm btn-outline-primary">Edit</a>
+                                @if (batch.IsActive)
+                                {
+                                    <a asp-action="Delete"
+                                       asp-route-id="@batch.Id"
+                                       asp-route-companyContextId="@companyContextId"
+                                       class="btn btn-sm btn-outline-danger">Deactivate</a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@if (totalPages > 1)
+{
+    <nav class="mt-3">
+        <ul class="pagination">
+            @for (var pageNumber = 1; pageNumber <= totalPages; pageNumber++)
+            {
+                <li class="page-item @(pageNumber == Model.Page ? "active" : "")">
+                    <a class="page-link"
+                       asp-action="Index"
+                       asp-route-productId="@productId"
+                       asp-route-warehouseId="@warehouseId"
+                       asp-route-search="@search"
+                       asp-route-isActive="@isActive"
+                       asp-route-expiringBefore="@expiringBefore"
+                       asp-route-page="@pageNumber"
+                       asp-route-pageSize="@Model.PageSize"
+                       asp-route-companyContextId="@companyContextId">@pageNumber</a>
+                </li>
+            }
+        </ul>
+    </nav>
+}

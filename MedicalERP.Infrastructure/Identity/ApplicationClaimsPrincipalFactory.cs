@@ -52,15 +52,21 @@ public sealed class ApplicationClaimsPrincipalFactory(
             identity.AddClaim(new Claim(PermissionClaimTypes.Permission, permission));
         }
 
-        var storeIds = await db.UserStoreAccesses
+        var storeAccess = await db.UserStoreAccesses
             .AsNoTracking()
             .IgnoreQueryFilters()
             .Where(x => x.UserId == user.Id && x.IsActive)
-            .Select(x => x.StoreId)
-            .Distinct()
             .ToListAsync();
 
-        foreach (var storeId in storeIds)
+        var defaultStoreId = storeAccess.FirstOrDefault(x => x.IsDefaultStore)?.StoreId
+            ?? storeAccess.FirstOrDefault()?.StoreId;
+
+        if (defaultStoreId.HasValue)
+        {
+            identity.AddClaim(new Claim("default_store_id", defaultStoreId.Value.ToString()));
+        }
+
+        foreach (var storeId in storeAccess.Select(x => x.StoreId).Distinct())
         {
             identity.AddClaim(new Claim("store_id", storeId.ToString()));
         }

@@ -12,7 +12,58 @@ public sealed class CurrentUserService(IHttpContextAccessor accessor) : ICurrent
     private ClaimsPrincipal? User => accessor.HttpContext?.User;
     public Guid? UserId => Guid.TryParse(User?.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : null;
     public Guid? CompanyId => Guid.TryParse(User?.FindFirstValue("company_id"), out var id) ? id : null;
-    public Guid? SelectedStoreId => Guid.TryParse(accessor.HttpContext?.Request.Headers["X-Store-Id"].FirstOrDefault(), out var id) ? id : null;
+    public Guid? SelectedStoreId
+    {
+        get
+        {
+            var request = accessor.HttpContext?.Request;
+            var raw = request?.Headers["X-Store-Id"].FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(raw))
+            {
+                raw = request?.Headers["Selected-Store-Id"].FirstOrDefault();
+            }
+
+            if (string.IsNullOrWhiteSpace(raw))
+            {
+                raw = request?.Query["storeContextId"].FirstOrDefault();
+            }
+
+            if (string.IsNullOrWhiteSpace(raw))
+            {
+                raw = request?.Query["storeId"].FirstOrDefault();
+            }
+
+            if (string.IsNullOrWhiteSpace(raw) && request?.HasFormContentType == true)
+            {
+                raw = request.Form["storeContextId"].FirstOrDefault();
+            }
+
+            if (string.IsNullOrWhiteSpace(raw) && request?.HasFormContentType == true)
+            {
+                raw = request.Form["storeId"].FirstOrDefault();
+            }
+
+            if (string.IsNullOrWhiteSpace(raw))
+            {
+                raw = request?.Cookies["SelectedStoreId"];
+            }
+
+            if (Guid.TryParse(raw, out var selectedId) && selectedId != Guid.Empty)
+            {
+                return selectedId;
+            }
+
+            var defaultStoreId = User?.FindFirstValue("default_store_id");
+            if (Guid.TryParse(defaultStoreId, out var defaultId) && defaultId != Guid.Empty)
+            {
+                return defaultId;
+            }
+
+            var assignedStores = AllowedStoreIds;
+            return assignedStores.Count == 1 ? assignedStores.Single() : null;
+        }
+    }
     public IReadOnlyCollection<Guid> AllowedStoreIds => User?.FindAll("store_id").Select(x => Guid.TryParse(x.Value, out var id) ? id : Guid.Empty).Where(x => x != Guid.Empty).Distinct().ToArray() ?? [];
     public bool IsPlatformAdmin => string.Equals(User?.FindFirstValue("is_platform_admin"), "true", StringComparison.OrdinalIgnoreCase);
     public IReadOnlyCollection<string> Permissions => User?.FindAll(PermissionClaimTypes.Permission).Select(x => x.Value).Distinct().ToArray() ?? [];

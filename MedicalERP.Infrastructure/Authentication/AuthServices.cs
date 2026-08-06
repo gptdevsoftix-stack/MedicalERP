@@ -45,6 +45,7 @@ public sealed class JwtTokenService(UserManager<ApplicationUser> userManager, Ro
             new("is_platform_admin", user.IsPlatformAdmin ? "true" : "false")
         };
         if (user.CompanyId.HasValue) claims.Add(new("company_id", user.CompanyId.Value.ToString()));
+        if (defaultStoreId.HasValue) claims.Add(new("default_store_id", defaultStoreId.Value.ToString()));
         claims.AddRange(roles.Select(x => new Claim(ClaimTypes.Role, x)));
         claims.AddRange(permissions.Select(x => new Claim(PermissionClaimTypes.Permission, x)));
         claims.AddRange(storeAccess.Select(x => new Claim("store_id", x.StoreId.ToString())));

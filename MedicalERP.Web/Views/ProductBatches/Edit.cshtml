@@ -1,0 +1,28 @@
+@model MedicalERP.Application.Inventory.Dtos.ProductBatchFormDto
+
+@{
+    ViewData["Title"] = "Edit Product Batch";
+    var companyContextId = ViewBag.CompanyContextId as string;
+}
+
+<h2>Edit Product Batch</h2>
+
+<div class="card">
+    <div class="card-body">
+        <form asp-action="Edit" asp-route-id="@Model.Id" method="post">
+            <input type="hidden" name="companyContextId" value="@companyContextId" />
+            <input asp-for="Id" type="hidden" />
+            @await Html.PartialAsync("_ProductBatchForm", Model)
+            <div class="form-check mb-3">
+                <input asp-for="IsActive" class="form-check-input" />
+                <label asp-for="IsActive" class="form-check-label"></label>
+            </div>
+            <button type="submit" class="btn btn-primary">Update</button>
+            <a asp-action="Index" asp-route-companyContextId="@companyContextId" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

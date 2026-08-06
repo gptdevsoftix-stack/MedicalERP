@@ -8,7 +8,7 @@ namespace MedicalERP.Domain.Inventory;
 public sealed class ProductBatch : StoreEntity
 {
     public Guid ProductId { get; set; }
-    public Guid WarehouseId { get; set; }
+    public Guid? WarehouseId { get; set; }
     public string BatchNumber { get; set; } = string.Empty;
     public DateOnly? ManufacturingDate { get; set; }
     public DateOnly? ExpiryDate { get; set; }
@@ -18,7 +18,7 @@ public sealed class ProductBatch : StoreEntity
     public decimal? MaximumRetailPrice { get; set; }
     public DateTimeOffset ReceivedAt { get; set; }
     public Product Product { get; set; } = null!;
-    public Warehouse Warehouse { get; set; } = null!;
+    public Warehouse? Warehouse { get; set; }
 }
 
 public sealed class InventoryStock : StoreEntity
