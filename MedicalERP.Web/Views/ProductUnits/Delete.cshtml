@@ -1,0 +1,27 @@
+@model MedicalERP.Domain.DTOs.ProductUnitFormDto
+
+@{
+    ViewData["Title"] = "Delete Product Unit";
+    var companyContextId = ViewBag.CompanyContextId as string;
+}
+
+<h2>Delete Product Unit</h2>
+
+<div class="alert alert-warning">
+    Are you sure you want to delete this product unit?
+</div>
+
+<form asp-action="Delete" asp-route-id="@Model.Id" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="ProductId" />
+    <input type="hidden" name="companyContextId" value="@companyContextId" />
+
+    <button type="submit" class="btn btn-danger">Delete</button>
+    <a asp-action="Index"
+       asp-route-productId="@Model.ProductId"
+       asp-route-companyContextId="@companyContextId"
+       class="btn btn-secondary">
+        Cancel
+    </a>
+</form>

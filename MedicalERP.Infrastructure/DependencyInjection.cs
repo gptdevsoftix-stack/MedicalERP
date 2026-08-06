@@ -94,6 +94,8 @@ public static class DependencyInjection
         services.AddScoped<ICatalogMasterService, CatalogMasterService>();
         services.AddScoped<IProductRepository, ProductRepository>();
         services.AddScoped<IProductService, ProductService>();
+        services.AddScoped<IProductUnitRepository, ProductUnitRepository>();
+        services.AddScoped<IProductUnitService, ProductUnitService>();
         return services;
     }
 }

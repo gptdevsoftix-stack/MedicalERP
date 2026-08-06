@@ -129,6 +129,9 @@
                                     <li class="menu-item@(currentPath.Contains("/ProductBrands") ? " active" : "")">
                                         <a asp-controller="ProductBrands" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><div>Product Brands</div></a>
                                     </li>
+                                    <li class="menu-item@(currentPath.Contains("/ProductUnits") ? " active" : "")">
+                                        <a asp-controller="ProductUnits" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><i class="menu-icon tf-icons ti ti-ruler-measure"></i><div>Product Units</div></a>
+                                    </li>
                                     <li class="menu-item@(currentPath.Contains("/Manufacturers") ? " active" : "")">
                                         <a asp-controller="Manufacturers" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><div>Manufacturers</div></a>
                                     </li>
@@ -164,6 +167,9 @@
                     {
                         <li class="menu-item@(currentPath.Contains("/Roles") ? " active" : "")">
                             <a asp-controller="Roles" asp-action="Index" class="menu-link"><i class="menu-icon tf-icons ti ti-lock"></i><div>Roles</div></a>
+                        </li>
+                        <li class="menu-item@(currentPath.Contains("/Permissions") ? " active" : "")">
+                            <a asp-controller="Permissions" asp-action="Index" class="menu-link"><i class="menu-icon tf-icons ti ti-shield-check"></i><div>Permissions</div></a>
                         </li>
                     }
                    @*  <li class="menu-header small text-uppercase"><span class="menu-header-text">API Endpoints</span></li>

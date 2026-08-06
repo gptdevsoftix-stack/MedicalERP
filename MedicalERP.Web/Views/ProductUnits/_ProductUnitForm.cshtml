@@ -1,0 +1,52 @@
+@model MedicalERP.Domain.DTOs.ProductUnitFormDto
+
+@{
+    var companyContextId = ViewBag.CompanyContextId as string;
+}
+
+<input type="hidden" asp-for="Id" />
+<input type="hidden" asp-for="ProductId" />
+<input type="hidden" name="companyContextId" value="@companyContextId" />
+
+<div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+<div class="mb-3">
+    <label asp-for="UnitId" class="form-label"></label>
+    <select asp-for="UnitId" asp-items="ViewBag.Units" class="form-select">
+        <option value="">Select unit</option>
+    </select>
+    <span asp-validation-for="UnitId" class="text-danger"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="ConversionFactor" class="form-label"></label>
+    <input asp-for="ConversionFactor" class="form-control" />
+    <span asp-validation-for="ConversionFactor" class="text-danger"></span>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-3">
+        <div class="form-check">
+            <input asp-for="IsBaseUnit" class="form-check-input" />
+            <label asp-for="IsBaseUnit" class="form-check-label"></label>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="form-check">
+            <input asp-for="IsPurchaseUnit" class="form-check-input" />
+            <label asp-for="IsPurchaseUnit" class="form-check-label"></label>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="form-check">
+            <input asp-for="IsSaleUnit" class="form-check-input" />
+            <label asp-for="IsSaleUnit" class="form-check-label"></label>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="form-check">
+            <input asp-for="IsActive" class="form-check-input" />
+            <label asp-for="IsActive" class="form-check-label"></label>
+        </div>
+    </div>
+</div>

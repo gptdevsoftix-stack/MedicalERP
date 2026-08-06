@@ -1,0 +1,31 @@
+@model MedicalERP.Domain.DTOs.ProductUnitFormDto
+
+@{
+    ViewData["Title"] = "Edit Product Unit";
+    var companyContextId = ViewBag.CompanyContextId as string;
+}
+
+<h2>Edit Product Unit</h2>
+
+<div class="card">
+    <div class="card-body">
+        <form asp-action="Edit" asp-route-id="@Model.Id" method="post">
+            @Html.AntiForgeryToken()
+            @await Html.PartialAsync("_ProductUnitForm", Model)
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">Save</button>
+                <a asp-action="Index"
+                   asp-route-productId="@Model.ProductId"
+                   asp-route-companyContextId="@companyContextId"
+                   class="btn btn-secondary">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

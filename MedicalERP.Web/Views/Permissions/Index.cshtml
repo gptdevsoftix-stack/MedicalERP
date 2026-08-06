@@ -1,0 +1,44 @@
+@model IReadOnlyCollection<string>
+
+@{
+    ViewData["Title"] = "Permissions";
+    var groups = Model
+        .Select(permission =>
+        {
+            var parts = permission.Split('.', 2);
+            return new
+            {
+                Group = parts[0],
+                Action = parts.Length > 1 ? parts[1] : permission,
+                Permission = permission
+            };
+        })
+        .GroupBy(x => x.Group)
+        .OrderBy(x => x.Key);
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Permissions</h2>
+    <span class="badge bg-label-primary">@Model.Count permissions</span>
+</div>
+
+<div class="row g-3">
+    @foreach (var group in groups)
+    {
+        <div class="col-md-6 col-xl-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">@group.Key</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-wrap gap-2">
+                        @foreach (var item in group.OrderBy(x => x.Action))
+                        {
+                            <span class="badge bg-label-secondary">@item.Action</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>

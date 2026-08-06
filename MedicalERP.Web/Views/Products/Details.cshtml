@@ -108,6 +108,14 @@
         Edit
     </a>
 
+    <a asp-controller="ProductUnits"
+       asp-action="Index"
+       asp-route-productId="@Model.Id"
+       asp-route-companyContextId="@companyContextId"
+       class="btn btn-outline-primary">
+        Units
+    </a>
+
     <a asp-action="Index"
        asp-route-companyContextId="@companyContextId"
        class="btn btn-secondary">
