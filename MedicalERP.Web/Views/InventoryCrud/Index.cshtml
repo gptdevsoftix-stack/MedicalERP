@@ -14,10 +14,56 @@
     var canWrite = User.HasClaim(PermissionClaimTypes.Permission, Permissions.Inventory.Adjust)
         || User.HasClaim(PermissionClaimTypes.Permission, Permissions.Inventory.Count)
         || User.HasClaim(PermissionClaimTypes.Permission, Permissions.Inventory.Dispose);
+    var isInventoryStocks = string.Equals(typeKey, "InventoryStocks", StringComparison.OrdinalIgnoreCase);
+    var isStockTransactions = string.Equals(typeKey, "StockTransactions", StringComparison.OrdinalIgnoreCase);
+    var hiddenFields = isInventoryStocks
+        ? new HashSet<string>(new[] { "StoreId", "WarehouseId", "ProductBatchId" }, StringComparer.OrdinalIgnoreCase)
+        : new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+    var displayFields = fields.Where(field => !hiddenFields.Contains(field)).ToArray();
+    var productCategories = ViewBag.ProductCategories as Dictionary<Guid, string> ?? new Dictionary<Guid, string>();
+    var productNames = ViewBag.ProductNames as Dictionary<Guid, string> ?? new Dictionary<Guid, string>();
+    var storeNames = ViewBag.StoreNames as Dictionary<Guid, string> ?? new Dictionary<Guid, string>();
+    var categories = ViewBag.Categories as IReadOnlyCollection<SelectListItem>;
+    var categoryId = ViewBag.CategoryId as Guid?;
+
+    string FieldLabel(string field)
+        => (isInventoryStocks || isStockTransactions) && field == "ProductId" ? "Product" : labels[field];
+
+    string DisplayCategory(object record)
+    {
+        var productId = entityType.GetProperty("ProductId")?.GetValue(record);
+        if (productId is Guid id && productCategories.TryGetValue(id, out var name))
+        {
+            return name;
+        }
+
+        return "-";
+    }
 
     string Display(object record, string field)
     {
         var value = entityType.GetProperty(field)?.GetValue(record);
+
+        if ((isInventoryStocks || isStockTransactions) && field == "ProductId")
+        {
+            if (value is Guid productId && productNames.TryGetValue(productId, out var productName))
+            {
+                return productName;
+            }
+
+            return "-";
+        }
+
+        if (isStockTransactions && field == "StoreId")
+        {
+            if (value is Guid storeId && storeNames.TryGetValue(storeId, out var storeName))
+            {
+                return storeName;
+            }
+
+            return "-";
+        }
+
         var raw = value?.ToString();
         if (!string.IsNullOrWhiteSpace(raw)
             && optionMaps.TryGetValue(field, out var map)
@@ -48,7 +94,7 @@
             <input type="hidden" name="companyContextId" value="@companyContextId" />
             <select name="type" class="form-select" asp-items="definitions" onchange="this.form.submit()"></select>
         </form>
-        @if (canWrite)
+        @if (canWrite && !isInventoryStocks)
         {
             <a asp-action="Create"
                asp-route-type="@typeKey"
@@ -65,14 +111,44 @@
     <div class="alert alert-success">@message</div>
 }
 
+@if (isInventoryStocks)
+{
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+        <form asp-action="Index" method="get" class="d-flex gap-2 align-items-center">
+            <input type="hidden" name="type" value="@typeKey" />
+            <input type="hidden" name="companyContextId" value="@companyContextId" />
+            <label class="form-label mb-0 text-nowrap" for="categoryId">Category</label>
+            <select name="categoryId" id="categoryId" class="form-select">
+                <option value="">All Categories</option>
+                @if (categories is not null)
+                {
+                    foreach (var option in categories)
+                    {
+                        <option value="@option.Value" selected="@(option.Value == categoryId?.ToString())">@option.Text</option>
+                    }
+                }
+            </select>
+            <button class="btn btn-outline-primary">Filter</button>
+                <a asp-action="Index"
+                   asp-route-type="@typeKey"
+                   asp-route-companyContextId="@companyContextId"
+                   class="btn btn-outline-secondary">Clear</a>
+            </form>
+    </div>
+}
+
 <div class="card">
     <div class="table-responsive text-nowrap">
         <table class="table table-hover">
             <thead>
                 <tr>
-                    @foreach (var field in fields.Take(7))
+                    @foreach (var field in displayFields.Take(7))
                     {
-                        <th>@labels[field]</th>
+                        <th>@FieldLabel(field)</th>
+                    }
+                    @if (isInventoryStocks)
+                    {
+                        <th>Category</th>
                     }
                     <th>Active</th>
                     <th class="text-end">Actions</th>
@@ -82,7 +158,7 @@
                 @if (Model.Count == 0)
                 {
                     <tr>
-                        <td colspan="@(fields.Take(7).Count() + 2)" class="text-center text-muted py-4">No records found.</td>
+                        <td colspan="@(displayFields.Take(7).Count() + (isInventoryStocks ? 1 : 0) + 2)" class="text-center text-muted py-4">No records found.</td>
                     </tr>
                 }
                 else
@@ -91,9 +167,13 @@
                     {
                         var entity = (BaseEntity)record;
                         <tr>
-                            @foreach (var field in fields.Take(7))
+                            @foreach (var field in displayFields.Take(7))
                             {
                                 <td>@Display(record, field)</td>
+                            }
+                            @if (isInventoryStocks)
+                            {
+                                <td>@DisplayCategory(record)</td>
                             }
                             <td>
                                 <span class="badge bg-label-@(entity.IsActive ? "success" : "secondary")">@(entity.IsActive ? "Active" : "Inactive")</span>

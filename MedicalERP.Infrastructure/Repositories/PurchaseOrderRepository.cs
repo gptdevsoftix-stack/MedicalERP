@@ -1,6 +1,7 @@
 using MedicalERP.Domain.Catalog;
 using MedicalERP.Domain.Companies;
 using MedicalERP.Domain.Interfaces;
+using MedicalERP.Domain.Inventory;
 using MedicalERP.Domain.Purchases;
 using MedicalERP.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -67,6 +68,21 @@ public sealed class PurchaseOrderRepository(ApplicationDbContext context) : IPur
     {
         return await context.Warehouses.AsNoTracking().Where(x => x.CompanyId == companyId && x.StoreId == storeId && x.IsActive).OrderBy(x => x.Name).ToListAsync(cancellationToken);
     }
+
+    public Task<InventoryStock?> GetInventoryStockAsync(Guid companyId, Guid storeId, Guid productId, Guid? warehouseId, Guid? productBatchId, CancellationToken cancellationToken = default)
+    {
+        return context.InventoryStocks.SingleOrDefaultAsync(
+            x => x.CompanyId == companyId &&
+                 x.StoreId == storeId &&
+                 x.ProductId == productId &&
+                 x.WarehouseId == warehouseId &&
+                 x.ProductBatchId == productBatchId,
+            cancellationToken);
+    }
+
+    public async Task AddInventoryStockAsync(InventoryStock stock, CancellationToken cancellationToken = default) => await context.InventoryStocks.AddAsync(stock, cancellationToken);
+
+    public async Task AddStockTransactionAsync(StockTransaction transaction, CancellationToken cancellationToken = default) => await context.StockTransactions.AddAsync(transaction, cancellationToken);
 
     public async Task AddAsync(PurchaseOrder order, CancellationToken cancellationToken = default) => await context.PurchaseOrders.AddAsync(order, cancellationToken);
     public Task SaveChangesAsync(CancellationToken cancellationToken = default) => context.SaveChangesAsync(cancellationToken);

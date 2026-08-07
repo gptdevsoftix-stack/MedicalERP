@@ -177,13 +177,12 @@
                             <a href="javascript:void(0);" class="menu-link menu-toggle">
                                 <i class="menu-icon tf-icons ti ti-packages"></i>
                                 <div>Inventory</div>
+
+
                             </a>
                             <ul class="menu-sub">
                                 <li class="menu-item@(currentPath.Contains("/ProductBatches") ? " active" : "")">
                                     <a asp-controller="ProductBatches" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><div>Product Batches</div></a>
-                                </li>
-                                <li class="menu-item@(currentPath.Contains("/InventoryCrud") && Context.Request.Query["type"] == "InventoryStocks" ? " active" : "")">
-                                    <a asp-controller="InventoryCrud" asp-action="Index" asp-route-type="InventoryStocks" asp-route-companyContextId="@companyContextId" class="menu-link"><div>Inventory Stock</div></a>
                                 </li>
                                 <li class="menu-item@(currentPath.Contains("/InventoryCrud") && Context.Request.Query["type"] == "StockTransactions" ? " active" : "")">
                                     <a asp-controller="InventoryCrud" asp-action="Index" asp-route-type="StockTransactions" asp-route-companyContextId="@companyContextId" class="menu-link"><div>Stock Transactions</div></a>
@@ -213,6 +212,12 @@
                                     <a asp-controller="InventoryCrud" asp-action="Index" asp-route-type="NumberSequences" asp-route-companyContextId="@companyContextId" class="menu-link"><div>Number Sequences</div></a>
                                 </li>
                             </ul>
+                        </li>
+                    }
+                    @if (canViewInventory)
+                    {
+                        <li class="menu-item@(currentPath.Contains("/InventoryCrud") && Context.Request.Query["type"] == "InventoryStocks" ? " active" : "")">
+                            <a asp-controller="InventoryCrud" asp-action="Index" asp-route-type="InventoryStocks" asp-route-companyContextId="@companyContextId" class="menu-link"><div>Inventory Stock</div></a>
                         </li>
                     }
                     @if (canViewPurchases)

@@ -58,19 +58,58 @@ public sealed class InventoryCrudController : Controller
 
     [HttpGet]
     [HasPermission(Permissions.Inventory.View)]
-    public async Task<IActionResult> Index(string type = "ProductBatches", CancellationToken cancellationToken = default)
+    public async Task<IActionResult> Index(
+        string type = "ProductBatches",
+        Guid? categoryId = null,
+        CancellationToken cancellationToken = default)
     {
         if (!TryGetDefinition(type, out var definition))
         {
             return NotFound();
         }
 
+        ViewBag.CategoryId = categoryId;
+        var isInventoryStocks = definition.EntityType == typeof(InventoryStock);
+        var isStockTransactions = definition.EntityType == typeof(StockTransaction);
         await PrepareViewAsync(type, definition, cancellationToken);
         var companyId = _companyContext.RequireCompanyId();
+
+        if (isInventoryStocks)
+        {
+            ViewBag.ProductCategories = await LoadProductCategoriesAsync(companyId, cancellationToken);
+            ViewBag.Categories = await LoadCategoryOptionsAsync(companyId, cancellationToken);
+        }
+
+        if (isInventoryStocks || isStockTransactions)
+        {
+            ViewBag.ProductNames = await _db.Products.AsNoTracking()
+                .Where(product => product.CompanyId == companyId)
+                .ToDictionaryAsync(product => product.Id, product => product.Name, cancellationToken);
+        }
+
+        if (isStockTransactions)
+        {
+            ViewBag.StoreNames = await _db.Stores.AsNoTracking()
+                .Where(store => store.CompanyId == companyId)
+                .ToDictionaryAsync(store => store.Id, store => store.Name, cancellationToken);
+        }
+
         var records = await Query(definition.EntityType).ToListAsync(cancellationToken);
-        var model = records
+        var query = records
             .OfType<CompanyEntity>()
-            .Where(x => x.CompanyId == companyId)
+            .Where(x => x.CompanyId == companyId);
+
+        if (isInventoryStocks && categoryId.HasValue)
+        {
+            var categoryProductIds = await _db.Products.AsNoTracking()
+                .Where(product => product.CompanyId == companyId && product.CategoryId == categoryId.Value)
+                .Select(product => product.Id)
+                .ToHashSetAsync(cancellationToken);
+
+            query = query.Where(x => x is InventoryStock stock && categoryProductIds.Contains(stock.ProductId));
+        }
+
+        var model = query
             .OrderByDescending(x => x.CreatedAt)
             .Take(500)
             .Cast<object>()
@@ -324,6 +363,31 @@ public sealed class InventoryCrudController : Controller
         options["DocumentType"] = options["ReferenceType"];
 
         return options;
+    }
+
+    private async Task<Dictionary<Guid, string>> LoadProductCategoriesAsync(
+        Guid companyId,
+        CancellationToken cancellationToken)
+    {
+        return await _db.Products.AsNoTracking()
+            .Where(product => product.CompanyId == companyId)
+            .Join(
+                _db.Categories.AsNoTracking().Where(category => category.CompanyId == companyId),
+                product => product.CategoryId,
+                category => category.Id,
+                (product, category) => new { product.Id, category.Name })
+            .ToDictionaryAsync(x => x.Id, x => x.Name, cancellationToken);
+    }
+
+    private async Task<List<SelectListItem>> LoadCategoryOptionsAsync(
+        Guid companyId,
+        CancellationToken cancellationToken)
+    {
+        return await _db.Categories.AsNoTracking()
+            .Where(x => x.CompanyId == companyId && x.IsActive)
+            .OrderBy(x => x.Name)
+            .Select(x => new SelectListItem(x.Name, x.Id.ToString()))
+            .ToListAsync(cancellationToken);
     }
 
     private static List<SelectListItem> EnumOptions<TEnum>()

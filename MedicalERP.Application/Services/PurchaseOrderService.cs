@@ -4,6 +4,7 @@ using MedicalERP.Application.Interfaces;
 using MedicalERP.Application.Purchases.Dtos;
 using MedicalERP.Domain.Enums;
 using MedicalERP.Domain.Interfaces;
+using MedicalERP.Domain.Inventory;
 using MedicalERP.Domain.Purchases;
 
 namespace MedicalERP.Application.Services;
@@ -87,6 +88,7 @@ public sealed class PurchaseOrderService(
         order.Status = OrderStatus.Approved;
         order.ApprovedByUserId = currentUser.UserId?.ToString();
         order.ApprovedAt = DateTimeOffset.UtcNow;
+        await AddApprovedItemsToStockAsync(order, cancellationToken);
         await repository.SaveChangesAsync(cancellationToken);
     }
 
@@ -123,6 +125,58 @@ public sealed class PurchaseOrderService(
         if (target == OrderStatus.Cancelled && order.Status is OrderStatus.Fulfilled or OrderStatus.Closed or OrderStatus.Cancelled) throw new InvalidOperationException("This purchase order cannot be cancelled.");
         order.Status = target;
         await repository.SaveChangesAsync(cancellationToken);
+    }
+
+    private async Task AddApprovedItemsToStockAsync(PurchaseOrder order, CancellationToken cancellationToken)
+    {
+        foreach (var item in order.Items.Where(x => x.Product.ProductType != ProductType.Service))
+        {
+            var quantity = (item.OrderedQuantity + item.FreeQuantity) * item.ConversionFactor;
+            if (quantity <= 0) continue;
+
+            var stock = await repository.GetInventoryStockAsync(order.CompanyId, order.StoreId, item.ProductId, order.WarehouseId, null, cancellationToken);
+            if (stock is null)
+            {
+                stock = new InventoryStock
+                {
+                    Id = Guid.NewGuid(),
+                    CompanyId = order.CompanyId,
+                    StoreId = order.StoreId,
+                    ProductId = item.ProductId,
+                    WarehouseId = order.WarehouseId,
+                    ProductBatchId = null,
+                    QuantityOnHand = quantity,
+                    ReservedQuantity = 0
+                };
+                await repository.AddInventoryStockAsync(stock, cancellationToken);
+            }
+            else
+            {
+                stock.QuantityOnHand += quantity;
+            }
+
+            item.ReceivedQuantity += item.OrderedQuantity + item.FreeQuantity;
+
+            await repository.AddStockTransactionAsync(new StockTransaction
+            {
+                Id = Guid.NewGuid(),
+                CompanyId = order.CompanyId,
+                StoreId = order.StoreId,
+                ProductId = item.ProductId,
+                WarehouseId = order.WarehouseId,
+                ProductBatchId = null,
+                TransactionType = StockTransactionType.PurchaseReceipt,
+                ReferenceType = DocumentType.PurchaseOrder,
+                ReferenceId = order.Id,
+                ReferenceNumber = order.OrderNumber,
+                QuantityIn = quantity,
+                QuantityOut = 0,
+                BalanceAfter = stock.QuantityOnHand,
+                UnitCost = item.ConversionFactor == 0 ? item.UnitPrice : item.UnitPrice / item.ConversionFactor,
+                TransactionAt = order.ApprovedAt ?? DateTimeOffset.UtcNow,
+                Notes = "Stock added from approved purchase order."
+            }, cancellationToken);
+        }
     }
 
     private async Task<PurchaseOrder> GetRequiredTrackedOrderAsync(Guid id, CancellationToken cancellationToken)
