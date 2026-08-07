@@ -1,0 +1,5 @@
+@model MedicalERP.Application.Purchases.Dtos.PurchaseOrderFormDto
+@{ ViewData["Title"] = "Edit Purchase Order"; }
+<div class="d-flex justify-content-between align-items-center mb-3"><div><h2 class="mb-1">Edit Purchase Order</h2><div class="text-muted">@Model.OrderNumber</div></div><a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary">Back</a></div>
+<form asp-action="Edit" asp-route-id="@Model.Id" method="post"><input type="hidden" asp-for="Id" /><partial name="_Form" model="Model" /><div class="d-flex justify-content-end gap-2"><a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary">Cancel</a><button class="btn btn-primary"><i class="ti ti-device-floppy me-1"></i>Save Draft</button></div></form>
+@section Scripts { <partial name="_ValidationScriptsPartial" /><partial name="_PurchaseOrderScripts" /> }

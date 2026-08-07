@@ -102,6 +102,10 @@ public static class DependencyInjection
         services.AddScoped<IStoreProductService, StoreProductService>();
         services.AddScoped<IProductBatchRepository, ProductBatchRepository>();
         services.AddScoped<IProductBatchService, ProductBatchService>();
+        services.AddScoped<IPurchaseOrderRepository, PurchaseOrderRepository>();
+        services.AddScoped<IPurchaseOrderService, PurchaseOrderService>();
+        services.AddScoped<ISupplierRepository, SupplierRepository>();
+        services.AddScoped<ISupplierService, SupplierService>();
         return services;
     }
 }

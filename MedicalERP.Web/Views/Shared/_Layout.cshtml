@@ -13,6 +13,8 @@
     var canViewProducts = HasPermission(Permissions.Products.View);
     var canViewWarehouses = HasPermission(Permissions.Stores.View);
     var canViewInventory = HasPermission(Permissions.Inventory.View);
+    var canViewPurchases = HasPermission(Permissions.Purchases.View);
+    var canViewSuppliers = HasPermission(Permissions.Suppliers.View);
     var canViewUsers = HasPermission(Permissions.Users.View);
     var canViewRoles = HasPermission(Permissions.Roles.View);
     var canViewCatalog = canViewCategories || canViewProducts;
@@ -28,6 +30,7 @@
         || currentPath.Contains("/ProductBarcodes")
         || currentPath.Contains("/StoreProducts");
     var inventoryActive = currentPath.Contains("/InventoryCrud") || currentPath.Contains("/ProductBatches");
+    var purchasesActive = currentPath.Contains("/PurchaseOrders");
 }
 <!DOCTYPE html>
 <html lang="en"
@@ -210,6 +213,18 @@
                                     <a asp-controller="InventoryCrud" asp-action="Index" asp-route-type="NumberSequences" asp-route-companyContextId="@companyContextId" class="menu-link"><div>Number Sequences</div></a>
                                 </li>
                             </ul>
+                        </li>
+                    }
+                    @if (canViewPurchases)
+                    {
+                        <li class="menu-item@(purchasesActive ? " active" : "")">
+                            <a asp-controller="PurchaseOrders" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><i class="menu-icon tf-icons ti ti-file-invoice"></i><div>Purchase Orders</div></a>
+                        </li>
+                    }
+                    @if (canViewSuppliers)
+                    {
+                        <li class="menu-item@(currentPath.Contains("/Suppliers") ? " active" : "")">
+                            <a asp-controller="Suppliers" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><i class="menu-icon tf-icons ti ti-truck"></i><div>Suppliers</div></a>
                         </li>
                     }
                     @if (canViewUsers)
