@@ -29,7 +29,7 @@ public sealed class SupplierStore : StoreEntity
 public sealed class PurchaseOrder : StoreEntity
 {
     public Guid SupplierId { get; set; }
-    public Guid WarehouseId { get; set; }
+    public Guid? WarehouseId { get; set; }
     public string OrderNumber { get; set; } = string.Empty;
     public DateTimeOffset OrderDate { get; set; }
     public DateTimeOffset? ExpectedDeliveryDate { get; set; }

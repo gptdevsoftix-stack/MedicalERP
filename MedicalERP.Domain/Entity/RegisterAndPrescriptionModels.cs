@@ -8,7 +8,7 @@ public sealed class Register : StoreEntity
 {
     public string Name { get; set; } = string.Empty;
     public string Code { get; set; } = string.Empty;
-    public Guid WarehouseId { get; set; }
+    public Guid? WarehouseId { get; set; }
     public bool IsEnabled { get; set; } = true;
 }
 

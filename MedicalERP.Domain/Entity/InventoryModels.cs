@@ -24,7 +24,7 @@ public sealed class ProductBatch : StoreEntity
 public sealed class InventoryStock : StoreEntity
 {
     public Guid ProductId { get; set; }
-    public Guid WarehouseId { get; set; }
+    public Guid? WarehouseId { get; set; }
     public Guid? ProductBatchId { get; set; }
     public decimal QuantityOnHand { get; set; }
     public decimal ReservedQuantity { get; set; }
@@ -37,7 +37,7 @@ public sealed class InventoryStock : StoreEntity
 public sealed class StockTransaction : StoreEntity
 {
     public Guid ProductId { get; set; }
-    public Guid WarehouseId { get; set; }
+    public Guid? WarehouseId { get; set; }
     public Guid? ProductBatchId { get; set; }
     public StockTransactionType TransactionType { get; set; }
     public DocumentType ReferenceType { get; set; }
@@ -53,7 +53,7 @@ public sealed class StockTransaction : StoreEntity
 
 public sealed class StockAdjustment : StoreEntity
 {
-    public Guid WarehouseId { get; set; }
+    public Guid? WarehouseId { get; set; }
     public string AdjustmentNumber { get; set; } = string.Empty;
     public AdjustmentType AdjustmentType { get; set; }
     public DateTimeOffset AdjustmentDate { get; set; }
@@ -75,7 +75,7 @@ public sealed class StockAdjustmentItem : StoreEntity
 
 public sealed class StockCount : StoreEntity
 {
-    public Guid WarehouseId { get; set; }
+    public Guid? WarehouseId { get; set; }
     public string CountNumber { get; set; } = string.Empty;
     public DateTimeOffset CountDate { get; set; }
     public StockCountStatus Status { get; set; }
@@ -96,7 +96,7 @@ public sealed class StockCountItem : StoreEntity
 
 public sealed class StockDisposal : StoreEntity
 {
-    public Guid WarehouseId { get; set; }
+    public Guid? WarehouseId { get; set; }
     public string DisposalNumber { get; set; } = string.Empty;
     public DateTimeOffset DisposalDate { get; set; }
     public Guid ReasonCodeId { get; set; }

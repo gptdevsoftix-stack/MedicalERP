@@ -1140,7 +1140,7 @@ namespace MedicalERP.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("UpdatedByUserId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("WarehouseId")
+                    b.Property<Guid?>("WarehouseId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
@@ -1275,7 +1275,7 @@ namespace MedicalERP.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("UpdatedByUserId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("WarehouseId")
+                    b.Property<Guid?>("WarehouseId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
@@ -1380,7 +1380,7 @@ namespace MedicalERP.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("UpdatedByUserId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("WarehouseId")
+                    b.Property<Guid?>("WarehouseId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
@@ -1491,7 +1491,7 @@ namespace MedicalERP.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("UpdatedByUserId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("WarehouseId")
+                    b.Property<Guid?>("WarehouseId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
@@ -1619,7 +1619,7 @@ namespace MedicalERP.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("UpdatedByUserId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("WarehouseId")
+                    b.Property<Guid?>("WarehouseId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
@@ -1943,7 +1943,7 @@ namespace MedicalERP.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("UpdatedByUserId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("WarehouseId")
+                    b.Property<Guid?>("WarehouseId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
@@ -2073,7 +2073,7 @@ namespace MedicalERP.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("UpdatedByUserId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("WarehouseId")
+                    b.Property<Guid?>("WarehouseId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
@@ -2372,7 +2372,7 @@ namespace MedicalERP.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("UpdatedByUserId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("WarehouseId")
+                    b.Property<Guid?>("WarehouseId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
@@ -2514,7 +2514,7 @@ namespace MedicalERP.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("UpdatedByUserId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("WarehouseId")
+                    b.Property<Guid?>("WarehouseId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
@@ -2901,7 +2901,7 @@ namespace MedicalERP.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("UpdatedByUserId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("WarehouseId")
+                    b.Property<Guid?>("WarehouseId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
@@ -3107,7 +3107,7 @@ namespace MedicalERP.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("UpdatedByUserId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("WarehouseId")
+                    b.Property<Guid?>("WarehouseId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
@@ -3294,7 +3294,7 @@ namespace MedicalERP.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("UpdatedByUserId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("WarehouseId")
+                    b.Property<Guid?>("WarehouseId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");

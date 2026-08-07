@@ -20,7 +20,7 @@ public sealed class Customer : CompanyEntity
 public sealed class SaleOrder : StoreEntity
 {
     public Guid? CustomerId { get; set; }
-    public Guid WarehouseId { get; set; }
+    public Guid? WarehouseId { get; set; }
     public string OrderNumber { get; set; } = string.Empty;
     public DateTimeOffset OrderDate { get; set; }
     public DateTimeOffset? RequiredDate { get; set; }
@@ -51,7 +51,7 @@ public sealed class SaleOrderItem : StoreEntity
 
 public sealed class Sale : StoreEntity
 {
-    public Guid WarehouseId { get; set; }
+    public Guid? WarehouseId { get; set; }
     public Guid RegisterSessionId { get; set; }
     public Guid? SaleOrderId { get; set; }
     public Guid? CustomerId { get; set; }
@@ -119,7 +119,7 @@ public sealed class SalePayment : StoreEntity
 public sealed class SaleReturn : StoreEntity
 {
     public Guid SaleId { get; set; }
-    public Guid WarehouseId { get; set; }
+    public Guid? WarehouseId { get; set; }
     public string ReturnNumber { get; set; } = string.Empty;
     public DateTimeOffset ReturnDate { get; set; }
     public ReturnStatus Status { get; set; }
