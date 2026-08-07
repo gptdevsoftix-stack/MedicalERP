@@ -188,7 +188,7 @@
                                 <li class="menu-item@(currentPath.Contains("/InventoryCrud") && Context.Request.Query["type"] == "StockTransactions" ? " active" : "")">
                                     <a asp-controller="InventoryCrud" asp-action="Index" asp-route-type="StockTransactions" asp-route-companyContextId="@companyContextId" class="menu-link"><div>Stock Transactions</div></a>
                                 </li>
-                                <li class="menu-item@(currentPath.Contains("/InventoryCrud") && Context.Request.Query["type"] == "StockAdjustments" ? " active" : "")">
+                               @*  <li class="menu-item@(currentPath.Contains("/InventoryCrud") && Context.Request.Query["type"] == "StockAdjustments" ? " active" : "")">
                                     <a asp-controller="InventoryCrud" asp-action="Index" asp-route-type="StockAdjustments" asp-route-companyContextId="@companyContextId" class="menu-link"><div>Stock Adjustments</div></a>
                                 </li>
                                 <li class="menu-item@(currentPath.Contains("/InventoryCrud") && Context.Request.Query["type"] == "StockAdjustmentItems" ? " active" : "")">
@@ -211,7 +211,7 @@
                                 </li>
                                 <li class="menu-item@(currentPath.Contains("/InventoryCrud") && Context.Request.Query["type"] == "NumberSequences" ? " active" : "")">
                                     <a asp-controller="InventoryCrud" asp-action="Index" asp-route-type="NumberSequences" asp-route-companyContextId="@companyContextId" class="menu-link"><div>Number Sequences</div></a>
-                                </li>
+                                </li> *@
                             </ul>
                         </li>
                     }

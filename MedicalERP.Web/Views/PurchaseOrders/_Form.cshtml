@@ -1,8 +1,48 @@
 @model MedicalERP.Application.Purchases.Dtos.PurchaseOrderFormDto
 @using System.Text.Json
 @{ var products = (IEnumerable<MedicalERP.Application.Purchases.Dtos.PurchaseLookupDto>)ViewBag.Products; }
-<div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-<div class="card mb-3"><div class="card-body"><div class="row g-3"><div class="col-md-4"><label asp-for="SupplierId" class="form-label"></label><select asp-for="SupplierId" asp-items="ViewBag.Suppliers" class="form-select"><option value="">Select supplier</option></select><span asp-validation-for="SupplierId" class="text-danger"></span></div><div class="col-md-4"><label asp-for="WarehouseId" class="form-label"></label><select asp-for="WarehouseId" asp-items="ViewBag.Warehouses" class="form-select"><option value="">No warehouse assigned</option></select></div><div class="col-md-4"><label asp-for="OrderNumber" class="form-label"></label><input asp-for="OrderNumber" class="form-control" /><span asp-validation-for="OrderNumber" class="text-danger"></span></div><div class="col-md-4"><label asp-for="OrderDate" class="form-label"></label><input asp-for="OrderDate" type="datetime-local" class="form-control" /></div><div class="col-md-4"><label asp-for="ExpectedDeliveryDate" class="form-label"></label><input asp-for="ExpectedDeliveryDate" type="datetime-local" class="form-control" /></div><div class="col-md-4"><label asp-for="OtherCharges" class="form-label"></label><input asp-for="OtherCharges" type="number" step="0.0001" class="form-control" /></div><div class="col-12"><label asp-for="Notes" class="form-label"></label><textarea asp-for="Notes" class="form-control" rows="2"></textarea></div></div></div></div>
-<div class="card"><div class="card-header d-flex justify-content-between align-items-center"><h5 class="mb-0">Order Lines</h5><button type="button" id="add-line" class="btn btn-sm btn-outline-primary"><i class="ti ti-plus me-1"></i>Add line</button></div><div class="table-responsive"><table class="table align-middle mb-0"><thead><tr><th style="min-width:220px">Product</th><th style="min-width:170px">Unit</th><th>Qty</th><th>Free</th><th>Unit Price</th><th>Discount</th><th>Tax</th><th>Total</th><th></th></tr></thead><tbody id="order-lines"></tbody></table></div><div class="card-footer text-end"><span class="text-muted me-2">Estimated total</span><strong id="order-total">0.00</strong></div></div>
+<div asp-validation-summary="ModelOnly" class="text-danger mb-3" id="po-error-summary"></div>
+<div class="card mb-3">
+    <div class="card-header"><h5 class="mb-0">Purchase Order Details</h5></div>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-4"><label asp-for="SupplierId" class="form-label"><span class="text-danger">*</span> Supplier</label><select asp-for="SupplierId" asp-items="ViewBag.Suppliers" class="form-select" data-required><option value="">Select supplier</option></select><span asp-validation-for="SupplierId" class="text-danger"></span></div>
+            <div class="col-md-4"><label asp-for="OrderNumber" class="form-label"><span class="text-danger">*</span> Order Number</label><input asp-for="OrderNumber" class="form-control" data-required placeholder="e.g. PO-20260807-001" /><span asp-validation-for="OrderNumber" class="text-danger"></span></div>
+            <div class="col-md-4"><label asp-for="OrderDate" class="form-label"><span class="text-danger">*</span> Order Date</label><input asp-for="OrderDate" type="datetime-local" class="form-control" data-required /><span asp-validation-for="OrderDate" class="text-danger"></span></div>
+            <div class="col-md-4"><label asp-for="WarehouseId" class="form-label">Warehouse</label><select asp-for="WarehouseId" asp-items="ViewBag.Warehouses" class="form-select"><option value="">No warehouse assigned</option></select></div>
+            <div class="col-md-4"><label asp-for="ExpectedDeliveryDate" class="form-label">Expected Delivery</label><input asp-for="ExpectedDeliveryDate" type="datetime-local" class="form-control" /></div>
+            <div class="col-md-4"><label asp-for="OtherCharges" class="form-label">Other Charges</label><div class="input-group"><span class="input-group-text">$</span><input asp-for="OtherCharges" type="number" min="0" step="0.0001" class="form-control" id="OtherCharges" /></div></div>
+            <div class="col-12"><label asp-for="Notes" class="form-label">Notes</label><textarea asp-for="Notes" class="form-control" rows="2" placeholder="Optional internal notes"></textarea></div>
+        </div>
+    </div>
+</div>
+<div class="card">
+    <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <h5 class="mb-0">Order Lines</h5>
+        <div class="d-flex gap-2 align-items-center">
+            <input type="search" id="product-filter" class="form-control form-control-sm" style="min-width:220px" placeholder="Filter products..." />
+            <button type="button" id="add-line" class="btn btn-sm btn-outline-primary"><i class="ti ti-plus me-1"></i>Add line</button>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead><tr><th style="min-width:240px">Product</th><th style="min-width:150px">Unit</th><th style="min-width:90px">Qty</th><th style="min-width:90px">Free</th><th style="min-width:110px">Unit Price</th><th style="min-width:110px">Discount</th><th style="min-width:110px">Tax</th><th class="text-end" style="min-width:90px">Total</th><th></th></tr></thead>
+            <tbody id="order-lines"></tbody>
+        </table>
+    </div>
+    <div class="card-footer">
+        <div class="row justify-content-end">
+            <div class="col-md-5 col-lg-4">
+                <div class="d-flex justify-content-between py-1"><span class="text-muted">Subtotal</span><strong id="order-subtotal">0.00</strong></div>
+                <div class="d-flex justify-content-between py-1"><span class="text-muted">Discount</span><strong id="order-discount">0.00</strong></div>
+                <div class="d-flex justify-content-between py-1"><span class="text-muted">Tax</span><strong id="order-tax">0.00</strong></div>
+                <div class="d-flex justify-content-between py-1"><span class="text-muted">Other charges</span><strong id="order-charges">0.00</strong></div>
+                <hr class="my-1" />
+                <div class="d-flex justify-content-between"><span class="fw-semibold">Grand total</span><strong id="order-total" class="fs-5">0.00</strong></div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="text-danger mt-2" id="po-line-errors" style="display:none"></div>
 <script id="product-data" type="application/json">@Html.Raw(JsonSerializer.Serialize(products))</script>
 <script id="initial-items" type="application/json">@Html.Raw(JsonSerializer.Serialize(Model.Items))</script>

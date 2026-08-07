@@ -45,6 +45,8 @@ public sealed class PurchaseOrderRepository(ApplicationDbContext context) : IPur
 
     public void RemoveItems(IEnumerable<PurchaseOrderItem> items) => context.PurchaseOrderItems.RemoveRange(items);
 
+    public void AddItems(IEnumerable<PurchaseOrderItem> items) => context.PurchaseOrderItems.AddRange(items);
+
     public async Task<IReadOnlyList<Supplier>> GetSuppliersAsync(Guid companyId, Guid storeId, CancellationToken cancellationToken = default)
     {
         return await context.Suppliers.AsNoTracking()

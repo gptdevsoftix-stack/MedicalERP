@@ -75,6 +75,7 @@ public sealed class PurchaseOrderService(
         repository.RemoveItems(order.Items.ToList());
         order.Items.Clear();
         ReplaceItems(order, request);
+        repository.AddItems(order.Items.ToList());
         CalculateTotals(order);
         await repository.SaveChangesAsync(cancellationToken);
     }

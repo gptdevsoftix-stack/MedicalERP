@@ -18,7 +18,9 @@
     var isStockTransactions = string.Equals(typeKey, "StockTransactions", StringComparison.OrdinalIgnoreCase);
     var hiddenFields = isInventoryStocks
         ? new HashSet<string>(new[] { "StoreId", "WarehouseId", "ProductBatchId" }, StringComparer.OrdinalIgnoreCase)
-        : new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        : isStockTransactions
+            ? new HashSet<string>(new[] { "WarehouseId", "ProductBatchId" }, StringComparer.OrdinalIgnoreCase)
+            : new HashSet<string>(StringComparer.OrdinalIgnoreCase);
     var displayFields = fields.Where(field => !hiddenFields.Contains(field)).ToArray();
     var productCategories = ViewBag.ProductCategories as Dictionary<Guid, string> ?? new Dictionary<Guid, string>();
     var productNames = ViewBag.ProductNames as Dictionary<Guid, string> ?? new Dictionary<Guid, string>();
