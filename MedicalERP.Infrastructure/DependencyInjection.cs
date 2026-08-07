@@ -106,6 +106,8 @@ public static class DependencyInjection
         services.AddScoped<IPurchaseOrderService, PurchaseOrderService>();
         services.AddScoped<ISupplierRepository, SupplierRepository>();
         services.AddScoped<ISupplierService, SupplierService>();
+        services.AddScoped<ICustomerRepository, CustomerRepository>();
+        services.AddScoped<ICustomerService, CustomerService>();
         return services;
     }
 }
