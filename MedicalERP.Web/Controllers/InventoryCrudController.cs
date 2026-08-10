@@ -28,7 +28,7 @@ public sealed class InventoryCrudController : Controller
             ["InventoryStocks"] = new("Inventory Stock", typeof(InventoryStock), Permissions.Inventory.Adjust,
                 ["StoreId", "ProductId", "WarehouseId", "ProductBatchId", "QuantityOnHand", "ReservedQuantity"]),
             ["StockTransactions"] = new("Stock Transactions", typeof(StockTransaction), Permissions.Inventory.Adjust,
-                ["StoreId", "ProductId", "WarehouseId", "ProductBatchId", "TransactionType", "ReferenceType", "ReferenceId", "ReferenceNumber", "QuantityIn", "QuantityOut", "BalanceAfter", "UnitCost", "TransactionAt", "Notes"]),
+                ["StoreId", "ProductId", "TransactionType", "TransactionAt", "QuantityIn", "QuantityOut", "BalanceAfter", "ReferenceNumber", "WarehouseId", "ProductBatchId", "ReferenceType", "ReferenceId", "UnitCost", "Notes"]),
             ["StockAdjustments"] = new("Stock Adjustments", typeof(StockAdjustment), Permissions.Inventory.Adjust,
                 ["StoreId", "WarehouseId", "AdjustmentNumber", "AdjustmentType", "AdjustmentDate", "ReasonCodeId", "Notes", "IsPosted"]),
             ["StockAdjustmentItems"] = new("Stock Adjustment Items", typeof(StockAdjustmentItem), Permissions.Inventory.Adjust,
