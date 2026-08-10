@@ -42,6 +42,10 @@ public sealed class SaleFormDto
     [Display(Name = "Payment Method")]
     public Guid? PaymentMethodId { get; set; }
 
+    [StringLength(80)]
+    [Display(Name = "Other Payment Method")]
+    public string? OtherPaymentMethodName { get; set; }
+
     [Range(0, 999999999)]
     [Display(Name = "Amount Paid")]
     public decimal PaidAmount { get; set; }

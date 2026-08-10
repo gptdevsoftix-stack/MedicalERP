@@ -57,7 +57,7 @@ public sealed class SaleRepository(ApplicationDbContext context) : ISaleReposito
     public async Task<IReadOnlyList<SaleProductLookupData>> GetProductsAsync(Guid companyId, Guid storeId, CancellationToken cancellationToken = default)
     {
         var stocks = await context.InventoryStocks.AsNoTracking()
-            .Where(x => x.CompanyId == companyId && x.StoreId == storeId && x.ProductBatchId == null)
+            .Where(x => x.CompanyId == companyId && x.StoreId == storeId)
             .GroupBy(x => x.ProductId)
             .Select(g => new { ProductId = g.Key, Available = g.Sum(x => x.QuantityOnHand - x.ReservedQuantity) })
             .ToDictionaryAsync(x => x.ProductId, x => x.Available, cancellationToken);
@@ -73,7 +73,7 @@ public sealed class SaleRepository(ApplicationDbContext context) : ISaleReposito
             .ToListAsync(cancellationToken);
 
         return products
-            .Where(p => p.AllowNegativeStock || stocks.GetValueOrDefault(p.Id) > 0)
+            .Where(p => stocks.GetValueOrDefault(p.Id) > 0)
             .Select(p => new SaleProductLookupData(
                 p.Id,
                 p.Name,
@@ -100,6 +100,9 @@ public sealed class SaleRepository(ApplicationDbContext context) : ISaleReposito
             .Where(x => x.CompanyId == companyId && x.IsActive)
             .OrderBy(x => x.Name).ToListAsync(cancellationToken);
     }
+
+    public async Task AddPaymentMethodAsync(PaymentMethod paymentMethod, CancellationToken cancellationToken = default) =>
+        await context.PaymentMethods.AddAsync(paymentMethod, cancellationToken);
 
     public async Task<IReadOnlyList<RegisterSession>> GetRegisterSessionsAsync(Guid companyId, Guid storeId, CancellationToken cancellationToken = default)
     {

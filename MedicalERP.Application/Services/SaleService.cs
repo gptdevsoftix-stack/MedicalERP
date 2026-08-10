@@ -17,6 +17,15 @@ public sealed class SaleService(
     IStoreContext storeContext,
     ICurrentUserService currentUser) : ISaleService
 {
+    private static readonly (string Code, string Name, PaymentMethodType Type, bool RequiresReference)[] StandardPaymentMethods =
+    [
+        ("CASH", "Cash", PaymentMethodType.Cash, false),
+        ("CARD", "Card", PaymentMethodType.Card, true),
+        ("ONLINE", "Online Payment", PaymentMethodType.MobileWallet, true),
+        ("BANK_TRANSFER", "Bank Transfer", PaymentMethodType.BankTransfer, true),
+        ("OTHER", "Other", PaymentMethodType.Other, false)
+    ];
+
     public async Task<PagedResult<SaleListDto>> GetAsync(SaleFilterDto filter, CancellationToken cancellationToken = default)
     {
         var companyId = RequireCompany();
@@ -93,7 +102,7 @@ public sealed class SaleService(
         sale.TaxAmount = tax;
         sale.GrandTotal = subtotal - itemDiscount + tax;
 
-        ApplyPayment(sale, request);
+        await ApplyPaymentAsync(sale, request, cancellationToken);
         await repository.AddAsync(sale, cancellationToken);
         await repository.SaveChangesAsync(cancellationToken);
         return sale.Id;
@@ -155,8 +164,12 @@ public sealed class SaleService(
 
     public async Task<IReadOnlyList<SaleLookupDto>> GetPaymentMethodsAsync(CancellationToken cancellationToken = default)
     {
-        var records = await repository.GetPaymentMethodsAsync(RequireCompany(), cancellationToken);
-        return records.Select(x => new SaleLookupDto { Id = x.Id, Name = x.Name }).ToArray();
+        var records = await EnsureStandardPaymentMethodsAsync(RequireCompany(), cancellationToken);
+        return records
+            .OrderBy(x => PaymentMethodSort(x.Code))
+            .ThenBy(x => x.Name)
+            .Select(x => new SaleLookupDto { Id = x.Id, Name = x.Name })
+            .ToArray();
     }
 
     public async Task<IReadOnlyList<SaleLookupDto>> GetRegisterSessionsAsync(CancellationToken cancellationToken = default)
@@ -219,7 +232,7 @@ public sealed class SaleService(
         return await repository.GetCostPriceAsync(companyId, storeId, productId, warehouseId, cancellationToken);
     }
 
-    private static void ApplyPayment(Sale sale, SaleFormDto request)
+    private async Task ApplyPaymentAsync(Sale sale, SaleFormDto request, CancellationToken cancellationToken)
     {
         var paid = request.PaidAmount;
         if (paid <= 0)
@@ -232,6 +245,7 @@ public sealed class SaleService(
         if (request.PaymentMethodId is null || request.PaymentMethodId == Guid.Empty)
             throw new InvalidOperationException("Select a payment method when recording a payment.");
 
+        var paymentMethodId = await ResolvePaymentMethodIdAsync(sale.CompanyId, request, cancellationToken);
         var amount = Math.Min(paid, sale.GrandTotal);
         sale.PaidAmount = amount;
         sale.ChangeAmount = paid > sale.GrandTotal ? paid - sale.GrandTotal : 0;
@@ -241,10 +255,87 @@ public sealed class SaleService(
         sale.Payments.Add(new SalePayment
         {
             Id = Guid.NewGuid(), CompanyId = sale.CompanyId, StoreId = sale.StoreId,
-            SaleId = sale.Id, PaymentMethodId = request.PaymentMethodId.Value,
+            SaleId = sale.Id, PaymentMethodId = paymentMethodId,
             Amount = amount, PaidAt = sale.SaleDate,
             ReferenceNumber = string.IsNullOrWhiteSpace(request.PaymentReference) ? null : request.PaymentReference.Trim()
         });
+    }
+
+    private async Task<Guid> ResolvePaymentMethodIdAsync(Guid companyId, SaleFormDto request, CancellationToken cancellationToken)
+    {
+        var records = await EnsureStandardPaymentMethodsAsync(companyId, cancellationToken);
+        var selected = records.First(x => x.Id == request.PaymentMethodId!.Value);
+        if (!IsOtherPaymentMethod(selected) || string.IsNullOrWhiteSpace(request.OtherPaymentMethodName))
+        {
+            return selected.Id;
+        }
+
+        var otherName = request.OtherPaymentMethodName.Trim();
+        var existing = records.FirstOrDefault(x => string.Equals(x.Name, otherName, StringComparison.OrdinalIgnoreCase));
+        if (existing is not null)
+        {
+            return existing.Id;
+        }
+
+        var custom = new PaymentMethod
+        {
+            Id = Guid.NewGuid(),
+            CompanyId = companyId,
+            Name = otherName,
+            Code = $"OTHER-{Guid.NewGuid():N}"[..38],
+            MethodType = PaymentMethodType.Other,
+            RequiresReference = false,
+            IsActive = true
+        };
+        await repository.AddPaymentMethodAsync(custom, cancellationToken);
+        return custom.Id;
+    }
+
+    private async Task<IReadOnlyList<PaymentMethod>> EnsureStandardPaymentMethodsAsync(Guid companyId, CancellationToken cancellationToken)
+    {
+        var records = (await repository.GetPaymentMethodsAsync(companyId, cancellationToken)).ToList();
+        var existingCodes = records.Select(x => x.Code).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var existingNames = records.Select(x => x.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var added = false;
+
+        foreach (var method in StandardPaymentMethods)
+        {
+            if (existingCodes.Contains(method.Code) || existingNames.Contains(method.Name)) continue;
+            var paymentMethod = new PaymentMethod
+            {
+                Id = Guid.NewGuid(),
+                CompanyId = companyId,
+                Code = method.Code,
+                Name = method.Name,
+                MethodType = method.Type,
+                RequiresReference = method.RequiresReference,
+                IsActive = true
+            };
+            await repository.AddPaymentMethodAsync(paymentMethod, cancellationToken);
+            records.Add(paymentMethod);
+            existingCodes.Add(method.Code);
+            existingNames.Add(method.Name);
+            added = true;
+        }
+
+        if (added)
+        {
+            await repository.SaveChangesAsync(cancellationToken);
+            records = (await repository.GetPaymentMethodsAsync(companyId, cancellationToken)).ToList();
+        }
+
+        return records;
+    }
+
+    private static bool IsOtherPaymentMethod(PaymentMethod paymentMethod) =>
+        paymentMethod.MethodType == PaymentMethodType.Other ||
+        string.Equals(paymentMethod.Code, "OTHER", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(paymentMethod.Name, "Other", StringComparison.OrdinalIgnoreCase);
+
+    private static int PaymentMethodSort(string code)
+    {
+        var index = Array.FindIndex(StandardPaymentMethods, x => string.Equals(x.Code, code, StringComparison.OrdinalIgnoreCase));
+        return index < 0 ? StandardPaymentMethods.Length : index;
     }
 
     private async Task ValidateAsync(SaleFormDto request, Guid companyId, Guid storeId, CancellationToken cancellationToken)
@@ -258,7 +349,10 @@ public sealed class SaleService(
         if (request.RegisterSessionId.HasValue && request.RegisterSessionId != Guid.Empty && !(await repository.GetRegisterSessionsAsync(companyId, storeId, cancellationToken)).Any(x => x.Id == request.RegisterSessionId.Value)) throw new InvalidOperationException("The selected register session is not open.");
         if (request.PaidAmount < 0) throw new InvalidOperationException("Amount paid cannot be negative.");
         if (request.PaidAmount > 0 && request.PaymentMethodId is null) throw new InvalidOperationException("Select a payment method when recording a payment.");
-        if (request.PaymentMethodId.HasValue && !(await repository.GetPaymentMethodsAsync(companyId, cancellationToken)).Any(x => x.Id == request.PaymentMethodId.Value)) throw new InvalidOperationException("Payment method was not found.");
+        var paymentMethods = await EnsureStandardPaymentMethodsAsync(companyId, cancellationToken);
+        if (request.PaymentMethodId.HasValue && !paymentMethods.Any(x => x.Id == request.PaymentMethodId.Value)) throw new InvalidOperationException("Payment method was not found.");
+        if (request.PaidAmount > 0 && request.PaymentMethodId.HasValue && IsOtherPaymentMethod(paymentMethods.First(x => x.Id == request.PaymentMethodId.Value)) && string.IsNullOrWhiteSpace(request.OtherPaymentMethodName))
+            throw new InvalidOperationException("Enter the other payment method name.");
         if (request.Items.Count == 0) throw new InvalidOperationException("Add at least one product line.");
 
         var products = await repository.GetProductsAsync(companyId, storeId, cancellationToken);

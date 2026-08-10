@@ -1,11 +1,19 @@
 <script>
 (() => {
-    const products = JSON.parse(document.getElementById('product-data').textContent || '[]');
+    const products = JSON.parse(document.getElementById('product-data').textContent || '[]').map(x => ({
+        id: x.id ?? x.Id,
+        name: x.name ?? x.Name,
+        availableStock: x.availableStock ?? x.AvailableStock ?? 0,
+        salePrice: x.salePrice ?? x.SalePrice ?? 0
+    }));
     const initial = JSON.parse(document.getElementById('initial-items').textContent || '[]');
     const body = document.getElementById('sale-lines');
     const form = document.getElementById('sale-form');
     const filterBox = document.getElementById('product-filter');
     const lineErrors = document.getElementById('sale-line-errors');
+    const paymentMethod = document.getElementById('PaymentMethodId');
+    const otherPaymentWrap = document.getElementById('other-payment-method-wrap');
+    const otherPaymentInput = document.getElementById('OtherPaymentMethodName');
     const saveButton = form?.querySelector('[data-save-button]');
     const saveLabel = saveButton?.querySelector('[data-save-label]');
     const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -131,7 +139,28 @@
             input.classList.toggle('is-invalid', invalid);
             if (invalid) ok = false;
         });
+        const paid = +document.getElementById('PaidAmount')?.value || 0;
+        if (paid > 0 && paymentMethod && otherPaymentInput && isOtherPaymentMethodSelected()) {
+            const invalid = !String(otherPaymentInput.value).trim();
+            otherPaymentInput.classList.toggle('is-invalid', invalid);
+            if (invalid) ok = false;
+        }
         return ok;
+    };
+
+    const isOtherPaymentMethodSelected = () => {
+        const selected = paymentMethod?.selectedOptions?.[0];
+        return selected && selected.textContent.trim().toLowerCase() === 'other';
+    };
+
+    const toggleOtherPaymentMethod = () => {
+        if (!otherPaymentWrap || !otherPaymentInput) return;
+        const show = isOtherPaymentMethodSelected();
+        otherPaymentWrap.style.display = show ? '' : 'none';
+        if (!show) {
+            otherPaymentInput.value = '';
+            otherPaymentInput.classList.remove('is-invalid');
+        }
     };
 
     const validateLines = () => {
@@ -206,7 +235,10 @@
         refreshDuplicates();
     });
     document.getElementById('PaidAmount')?.addEventListener('input', recalc);
+    paymentMethod?.addEventListener('change', () => { toggleOtherPaymentMethod(); markDirty(); });
+    otherPaymentInput?.addEventListener('input', () => { otherPaymentInput.classList.remove('is-invalid'); markDirty(); });
 
+    toggleOtherPaymentMethod();
     (initial.length ? initial : [{}]).forEach(add);
 })();
 </script>

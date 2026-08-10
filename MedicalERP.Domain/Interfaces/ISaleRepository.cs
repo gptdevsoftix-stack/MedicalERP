@@ -18,6 +18,7 @@ public interface ISaleRepository
     Task<IReadOnlyList<ProductUnit>> GetProductUnitsAsync(Guid productId, Guid companyId, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<Warehouse>> GetWarehousesAsync(Guid companyId, Guid storeId, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<PaymentMethod>> GetPaymentMethodsAsync(Guid companyId, CancellationToken cancellationToken = default);
+    Task AddPaymentMethodAsync(PaymentMethod paymentMethod, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<RegisterSession>> GetRegisterSessionsAsync(Guid companyId, Guid storeId, CancellationToken cancellationToken = default);
     Task<RegisterSession?> GetOpenRegisterSessionAsync(Guid companyId, Guid storeId, CancellationToken cancellationToken = default);
     Task<Register?> GetDefaultRegisterAsync(Guid companyId, Guid storeId, CancellationToken cancellationToken = default);
