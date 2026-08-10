@@ -2,6 +2,7 @@ using MedicalERP.Domain.Catalog;
 using MedicalERP.Domain.Common;
 using MedicalERP.Domain.Enums;
 using MedicalERP.Domain.Inventory;
+using MedicalERP.Domain.Support;
 
 namespace MedicalERP.Domain.Sales;
 
@@ -52,7 +53,7 @@ public sealed class SaleOrderItem : StoreEntity
 public sealed class Sale : StoreEntity
 {
     public Guid? WarehouseId { get; set; }
-    public Guid RegisterSessionId { get; set; }
+    public Guid? RegisterSessionId { get; set; }
     public Guid? SaleOrderId { get; set; }
     public Guid? CustomerId { get; set; }
     public Guid? PrescriptionId { get; set; }
@@ -114,6 +115,7 @@ public sealed class SalePayment : StoreEntity
     public DateTimeOffset PaidAt { get; set; }
     public string? ReferenceNumber { get; set; }
     public Sale Sale { get; set; } = null!;
+    public PaymentMethod PaymentMethod { get; set; } = null!;
 }
 
 public sealed class SaleReturn : StoreEntity

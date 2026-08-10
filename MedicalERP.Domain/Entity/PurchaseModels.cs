@@ -67,7 +67,7 @@ public sealed class PurchaseOrderItem : StoreEntity
 public sealed class GoodsReceipt : StoreEntity
 {
     public Guid SupplierId { get; set; }
-    public Guid WarehouseId { get; set; }
+    public Guid? WarehouseId { get; set; }
     public Guid? PurchaseOrderId { get; set; }
     public string ReceiptNumber { get; set; } = string.Empty;
     public string? SupplierDeliveryNote { get; set; }
@@ -144,7 +144,7 @@ public sealed class SupplierPayment : StoreEntity
 public sealed class PurchaseReturn : StoreEntity
 {
     public Guid SupplierId { get; set; }
-    public Guid WarehouseId { get; set; }
+    public Guid? WarehouseId { get; set; }
     public Guid? PurchaseInvoiceId { get; set; }
     public string ReturnNumber { get; set; } = string.Empty;
     public DateTimeOffset ReturnDate { get; set; }

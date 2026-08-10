@@ -1,0 +1,212 @@
+<script>
+(() => {
+    const products = JSON.parse(document.getElementById('product-data').textContent || '[]');
+    const initial = JSON.parse(document.getElementById('initial-items').textContent || '[]');
+    const body = document.getElementById('sale-lines');
+    const form = document.getElementById('sale-form');
+    const filterBox = document.getElementById('product-filter');
+    const lineErrors = document.getElementById('sale-line-errors');
+    const saveButton = form?.querySelector('[data-save-button]');
+    const saveLabel = saveButton?.querySelector('[data-save-label]');
+    const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const money = value => (+value || 0).toFixed(2);
+    let submitted = false;
+    let dirty = false;
+
+    const productById = id => products.find(x => String(x.id) === String(id));
+
+    const productOptions = (selected, filter) => {
+        const q = (filter || '').trim().toLowerCase();
+        return '<option value="">Select product</option>' + products
+            .filter(x => !q || String(x.name).toLowerCase().includes(q))
+            .map(x => {
+                const stock = (+x.availableStock || 0).toLocaleString(undefined, { maximumFractionDigits: 4 });
+                return `<option value="${x.id}" ${String(x.id) === String(selected) ? 'selected' : ''}>${esc(x.name)} (stock: ${stock})</option>`;
+            })
+            .join('');
+    };
+
+    const units = async (select, productId, selected) => {
+        select.innerHTML = '<option value="">Loading...</option>';
+        if (!productId) { select.innerHTML = '<option value="">Select unit</option>'; return; }
+        try {
+            const response = await fetch(`/Sales/ProductUnits?productId=${encodeURIComponent(productId)}`);
+            if (!response.ok) throw new Error('Request failed');
+            const data = await response.json();
+            select.innerHTML = '<option value="">Select unit</option>' + data.map(x => `<option value="${x.id}" ${String(x.id) === String(selected) ? 'selected' : ''}>${esc(x.name)}</option>`).join('');
+        } catch {
+            select.innerHTML = '<option value="">Select unit</option><option value="" disabled>Failed to load units</option>';
+        }
+    };
+
+    const setRowError = (row, message) => {
+        let tip = row.querySelector('.sale-row-error');
+        if (!tip) { tip = document.createElement('td'); tip.colSpan = 8; tip.className = 'sale-row-error text-danger small pt-0'; row.appendChild(tip); }
+        tip.textContent = message;
+        row.classList.add('sale-row-invalid');
+    };
+
+    const clearRowError = row => {
+        const tip = row.querySelector('.sale-row-error');
+        if (tip) tip.textContent = '';
+        row.classList.remove('sale-row-invalid');
+    };
+
+    const refreshDuplicates = () => {
+        const selected = new Set([...body.children].map(r => r.querySelector('[data-field="ProductId"]')?.value).filter(v => v));
+        [...body.children].forEach(row => {
+            const select = row.querySelector('[data-field="ProductId"]');
+            [...select.options].forEach(opt => {
+                if (!opt.value) { opt.disabled = false; return; }
+                opt.disabled = opt.value !== select.value && selected.has(opt.value);
+            });
+        });
+    };
+
+    const recalc = () => {
+        let subtotal = 0, discount = 0, tax = 0;
+        body.querySelectorAll('tr').forEach(row => {
+            const qty = +row.querySelector('[data-field="Quantity"]')?.value || 0;
+            const price = +row.querySelector('[data-field="UnitPrice"]')?.value || 0;
+            const discountAmount = +row.querySelector('[data-field="DiscountAmount"]')?.value || 0;
+            const taxAmount = +row.querySelector('[data-field="TaxAmount"]')?.value || 0;
+            const line = qty * price - discountAmount + taxAmount;
+            row.querySelector('[data-total]').textContent = money(line);
+            subtotal += qty * price; discount += discountAmount; tax += taxAmount;
+        });
+        const grandTotal = subtotal - discount + tax;
+        const paid = +document.getElementById('PaidAmount')?.value || 0;
+        document.getElementById('sale-subtotal').textContent = money(subtotal);
+        document.getElementById('sale-discount').textContent = money(discount);
+        document.getElementById('sale-tax').textContent = money(tax);
+        document.getElementById('sale-total').textContent = money(grandTotal);
+        document.getElementById('sale-due').textContent = money(Math.max(grandTotal - paid, 0));
+        document.getElementById('sale-change').textContent = money(paid > grandTotal ? paid - grandTotal : 0);
+    };
+
+    const reindex = () => [...body.children].forEach((row, n) =>
+        row.querySelectorAll('[name]').forEach(input => input.name = input.name.replace(/Items\[\d+\]/, `Items[${n}]`)));
+
+    const add = item => {
+        const i = body.children.length;
+        const row = document.createElement('tr');
+        row.innerHTML = `<td><select name="Items[${i}].ProductId" data-field="ProductId" class="form-select form-select-sm">${productOptions(item?.ProductId)}</select>`
+            + `<div class="sale-stock small text-muted mt-1"></div></td>`
+            + `<td><select name="Items[${i}].ProductUnitId" data-field="ProductUnitId" class="form-select form-select-sm"><option value="">Select unit</option></select></td>`
+            + `<td><input name="Items[${i}].Quantity" data-field="Quantity" value="${item?.Quantity ?? ''}" type="number" min="0.0001" step="0.0001" placeholder="0" class="form-control form-control-sm" /></td>`
+            + `<td><input name="Items[${i}].UnitPrice" data-field="UnitPrice" value="${item?.UnitPrice ?? ''}" type="number" min="0" step="0.0001" class="form-control form-control-sm" /></td>`
+            + `<td><input name="Items[${i}].DiscountAmount" data-field="DiscountAmount" value="${item?.DiscountAmount ?? 0}" type="number" min="0" step="0.0001" class="form-control form-control-sm" /></td>`
+            + `<td><input name="Items[${i}].TaxAmount" data-field="TaxAmount" value="${item?.TaxAmount ?? 0}" type="number" min="0" step="0.0001" class="form-control form-control-sm" /></td>`
+            + `<td class="text-end" data-total>0.00</td>`
+            + `<td class="text-end"><button type="button" class="btn btn-sm btn-outline-danger remove-line" title="Remove line"><i class="ti ti-trash"></i></button></td>`;
+        body.appendChild(row);
+
+        const product = row.querySelector('[data-field="ProductId"]');
+        const unit = row.querySelector('[data-field="ProductUnitId"]');
+        const price = row.querySelector('[data-field="UnitPrice"]');
+        const stockBox = row.querySelector('.sale-stock');
+        const applyProduct = () => {
+            const record = productById(product.value);
+            const stockEl = record ? `${esc(record.name)}: available ${(+record.availableStock || 0).toLocaleString(undefined, { maximumFractionDigits: 4 })}` : '';
+            stockBox.textContent = stockEl;
+            if (record && (+price.value || 0) === 0 && !item?.UnitPrice) price.value = record.salePrice || 0;
+            units(unit, product.value, item?.ProductUnitId);
+            refreshDuplicates(); clearRowError(row); recalc(); markDirty();
+        };
+        product.addEventListener('change', applyProduct);
+        unit.addEventListener('change', () => { clearRowError(row); markDirty(); });
+        row.querySelectorAll('[data-field]').forEach(input => input.addEventListener('input', () => { recalc(); clearRowError(row); markDirty(); }));
+        row.querySelector('.remove-line').addEventListener('click', () => { row.remove(); reindex(); refreshDuplicates(); recalc(); markDirty(); });
+
+        applyProduct();
+        recalc();
+    };
+
+    const validateHeader = () => {
+        let ok = true;
+        ['InvoiceNumber', 'SaleDate'].forEach(id => {
+            const input = document.getElementById(id);
+            if (!input) return;
+            const invalid = !String(input.value).trim();
+            input.classList.toggle('is-invalid', invalid);
+            if (invalid) ok = false;
+        });
+        return ok;
+    };
+
+    const validateLines = () => {
+        let ok = true; const errors = []; const seen = new Map();
+        [...body.children].forEach(row => {
+            clearRowError(row);
+            const productId = row.querySelector('[data-field="ProductId"]')?.value;
+            const unitId = row.querySelector('[data-field="ProductUnitId"]')?.value;
+            const qty = +row.querySelector('[data-field="Quantity"]')?.value || 0;
+            const price = +row.querySelector('[data-field="UnitPrice"]')?.value || 0;
+            const discount = +row.querySelector('[data-field="DiscountAmount"]')?.value || 0;
+            const tax = +row.querySelector('[data-field="TaxAmount"]')?.value || 0;
+            if (!productId) return;
+            if (!unitId) { setRowError(row, 'Select a unit for this product.'); ok = false; return; }
+            if (qty <= 0) { setRowError(row, 'Quantity must be greater than zero.'); ok = false; return; }
+            if (price < 0 || discount < 0 || tax < 0) { setRowError(row, 'Amounts cannot be negative.'); ok = false; return; }
+            if (seen.has(productId)) { setRowError(row, 'Product is already added. Adjust quantity instead.'); seen.get(productId).classList.add('sale-row-invalid'); ok = false; return; }
+            const record = productById(productId);
+            if (record && qty > (+record.availableStock || 0)) setRowError(row, `Only ${(+record.availableStock || 0)} unit(s) available. Stock will be validated on save.`);
+            seen.set(productId, row);
+        });
+        if (body.querySelectorAll('tr').length === 0 || ![...body.children].some(r => r.querySelector('[data-field="ProductId"]')?.value)) {
+            ok = false; errors.push('Add at least one product line.');
+        }
+        return ok;
+    };
+
+    const stripEmptyRows = () => {
+        [...body.children].forEach(row => { if (!row.querySelector('[data-field="ProductId"]')?.value) row.remove(); });
+        reindex();
+    };
+
+    const validate = () => {
+        lineErrors.style.display = 'none'; lineErrors.textContent = '';
+        const headerOk = validateHeader();
+        const linesOk = validateLines();
+        if (!headerOk || !linesOk) {
+            lineErrors.textContent = 'Please correct the highlighted fields above before saving.';
+            lineErrors.style.display = 'block';
+            lineErrors.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            return false;
+        }
+        return true;
+    };
+
+    const markDirty = () => { dirty = true; };
+
+    if (form) {
+        form.addEventListener('submit', e => {
+            if (!validate()) { e.preventDefault(); return; }
+            stripEmptyRows();
+            submitted = true; dirty = false;
+            if (saveButton) { saveButton.disabled = true; if (saveLabel) saveLabel.textContent = 'Saving...'; }
+        });
+        form.addEventListener('input', e => { if (e.target.matches('input, select, textarea')) markDirty(); });
+        form.addEventListener('keydown', e => {
+            if (e.key === 'Enter' && e.target.matches('input[type="number"], input[type="search"]') && !e.target.closest('.input-group')) e.preventDefault();
+        });
+    }
+
+    window.addEventListener('beforeunload', e => {
+        if (dirty && !submitted) { e.preventDefault(); e.returnValue = ''; }
+    });
+
+    document.getElementById('add-line').addEventListener('click', () => { add({}); filterBox.value = ''; });
+    filterBox.addEventListener('input', () => {
+        [...body.children].forEach(row => {
+            const select = row.querySelector('[data-field="ProductId"]');
+            const keep = select.value;
+            select.innerHTML = productOptions(keep, filterBox.value);
+        });
+        refreshDuplicates();
+    });
+    document.getElementById('PaidAmount')?.addEventListener('input', recalc);
+
+    (initial.length ? initial : [{}]).forEach(add);
+})();
+</script>

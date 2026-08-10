@@ -14,6 +14,7 @@
     var canViewWarehouses = HasPermission(Permissions.Stores.View);
     var canViewInventory = HasPermission(Permissions.Inventory.View);
     var canViewPurchases = HasPermission(Permissions.Purchases.View);
+    var canViewSales = HasPermission(Permissions.Sales.View);
     var canViewSuppliers = HasPermission(Permissions.Suppliers.View);
     var canViewCustomers = HasPermission(Permissions.Customers.View);
     var canViewUsers = HasPermission(Permissions.Users.View);
@@ -225,6 +226,12 @@
                     {
                         <li class="menu-item@(purchasesActive ? " active" : "")">
                             <a asp-controller="PurchaseOrders" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><i class="menu-icon tf-icons ti ti-file-invoice"></i><div>Purchase Orders</div></a>
+                        </li>
+                    }
+                    @if (canViewSales)
+                    {
+                        <li class="menu-item@(currentPath.Contains("/Sales") ? " active" : "")">
+                            <a asp-controller="Sales" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><i class="menu-icon tf-icons ti ti-shopping-cart"></i><div>Sales</div></a>
                         </li>
                     }
                     @if (canViewSuppliers)
