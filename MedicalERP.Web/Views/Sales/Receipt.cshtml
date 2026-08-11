@@ -1,0 +1,232 @@
+@model MedicalERP.Application.Sales.Dtos.SaleFormDto
+@using MedicalERP.Domain.Enums
+@{
+    ViewData["Title"] = $"Receipt - {Model.InvoiceNumber}";
+}
+<div class="d-flex justify-content-between align-items-center mb-3 d-print-none">
+    <div><h2 class="mb-1">Receipt</h2><div class="text-muted">@Model.InvoiceNumber</div></div>
+    <div class="d-flex gap-2">
+        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary">Back</a>
+        <a asp-action="ReceiptPdf" asp-route-id="@Model.Id" class="btn btn-outline-primary" title="Download as PDF"><i class="ti ti-download me-1"></i>Download PDF</a>
+        <button type="button" class="btn btn-primary" onclick="window.print()"><i class="ti ti-printer me-1"></i>Print</button>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] is not null) { <div class="alert alert-success d-print-none">@TempData["SuccessMessage"]</div> }
+
+<div class="d-flex justify-content-center">
+    <div class="receipt" id="receipt">
+        <div class="receipt-header">
+            <div class="receipt-brand">MEDICALERP</div>
+            <div class="receipt-subtitle">Multi-company Medical ERP &amp; POS</div>
+            <div class="receipt-invoice">@Model.InvoiceNumber</div>
+            <div class="receipt-date">@Model.SaleDate.ToString("yyyy-MM-dd HH:mm")</div>
+        </div>
+
+        <div class="receipt-divider"></div>
+
+        <div class="receipt-info">
+            <div class="d-flex justify-content-between"><span class="text-muted">Customer</span><strong>@(Model.CustomerName ?? "Walk-in customer")</strong></div>
+            <div class="d-flex justify-content-between"><span class="text-muted">Register session</span><span>@(Model.RegisterSessionName ?? "Auto / Open")</span></div>
+            <div class="d-flex justify-content-between"><span class="text-muted">Status</span>
+                <span class="badge bg-@(Model.Status == SaleStatus.Confirmed ? "success" : Model.Status == SaleStatus.Cancelled ? "danger" : "warning")">@Model.Status</span>
+            </div>
+        </div>
+
+        <div class="receipt-divider"></div>
+
+        <table class="receipt-table">
+            <thead>
+                <tr><th>Item</th><th class="text-end">Qty</th><th class="text-end">Price</th><th class="text-end">Total</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Items)
+                {
+                    <tr>
+                        <td>
+                            <span>@(item.ProductName ?? string.Empty)</span>
+                            <small>@(item.ProductUnitName ?? string.Empty)</small>
+                        </td>
+                        <td class="text-end">@item.Quantity.ToString("N4")</td>
+                        <td class="text-end">Rs @item.UnitPrice.ToString("N2")</td>
+                        <td class="text-end">Rs @item.NetAmount.ToString("N2")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <div class="receipt-divider"></div>
+
+        <div class="receipt-totals">
+            <div class="d-flex justify-content-between"><span>Subtotal</span><span>Rs @Model.Subtotal.ToString("N2")</span></div>
+            <div class="d-flex justify-content-between"><span>Discount</span><span>- Rs @Model.ItemDiscount.ToString("N2")</span></div>
+            <div class="d-flex justify-content-between"><span>Tax</span><span>Rs @Model.TaxAmount.ToString("N2")</span></div>
+            <div class="receipt-grand d-flex justify-content-between"><strong>Grand Total</strong><strong>Rs @Model.GrandTotal.ToString("N2")</strong></div>
+        </div>
+
+        <div class="receipt-divider"></div>
+
+        @if (Model.Payments.Count > 0)
+        {
+            <div class="receipt-payments">
+                @foreach (var p in Model.Payments)
+                {
+                    <div class="d-flex justify-content-between"><span>@(p.PaymentMethodName ?? "Payment")</span><span>Rs @p.Amount.ToString("N2")</span></div>
+                }
+            </div>
+        }
+        <div class="receipt-payments">
+            <div class="d-flex justify-content-between"><span>Paid</span><strong>Rs @Model.PaidAmount.ToString("N2")</strong></div>
+            <div class="d-flex justify-content-between"><span>Change</span><span>Rs @Model.ChangeAmount.ToString("N2")</span></div>
+            @if (Model.DueAmount > 0)
+            {
+                <div class="d-flex justify-content-between"><span>Balance due</span><strong>Rs @Model.DueAmount.ToString("N2")</strong></div>
+            }
+        </div>
+
+        <div class="receipt-divider"></div>
+
+        <div class="receipt-footer">
+            <div class="receipt-thanks">Thank you for your purchase!</div>
+            <div class="receipt-note">Medicines should be stored as directed on the label.</div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .receipt {
+        width: 100%;
+        max-width: 420px;
+        background: #fff;
+        color: #1f2330;
+        border-radius: .75rem;
+        padding: 1.75rem;
+        box-shadow: 0 .5rem 1.5rem rgba(75, 70, 92, .12);
+        font-size: .875rem;
+    }
+
+    .receipt-header {
+        text-align: center;
+    }
+
+    .receipt-brand {
+        font-size: 1.35rem;
+        font-weight: 700;
+        letter-spacing: .08em;
+        color: #7367f0;
+    }
+
+    .receipt-subtitle {
+        font-size: .75rem;
+        color: #6f6b7d;
+        margin-top: .15rem;
+    }
+
+    .receipt-invoice {
+        font-weight: 600;
+        margin-top: .75rem;
+        color: #4b465c;
+    }
+
+    .receipt-date {
+        font-size: .78rem;
+        color: #6f6b7d;
+    }
+
+    .receipt-divider {
+        border-top: 1px dashed #d8d6de;
+        margin: .9rem 0;
+    }
+
+    .receipt-info,
+    .receipt-totals,
+    .receipt-payments {
+        display: flex;
+        flex-direction: column;
+        gap: .3rem;
+    }
+
+    .receipt-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .receipt-table th {
+        font-size: .72rem;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        color: #6f6b7d;
+        border-bottom: 1px solid #e8e6ee;
+        padding: 0 0 .35rem;
+    }
+
+    .receipt-table td {
+        padding: .45rem 0;
+        border-bottom: 1px solid #f0eef5;
+        vertical-align: top;
+    }
+
+    .receipt-table td small {
+        display: block;
+        color: #a5a3b9;
+    }
+
+    .receipt-grand {
+        border-top: 1px solid #e8e6ee;
+        padding-top: .5rem;
+        margin-top: .25rem;
+        color: #7367f0;
+        font-size: 1.05rem;
+    }
+
+    .receipt-footer {
+        text-align: center;
+    }
+
+    .receipt-thanks {
+        font-weight: 600;
+    }
+
+    .receipt-note {
+        font-size: .72rem;
+        color: #6f6b7d;
+        margin-top: .2rem;
+    }
+
+    @@media print {
+        @@page {
+            margin: 10mm;
+            size: 80mm auto;
+        }
+
+        body {
+            background: #fff !important;
+        }
+
+        .layout-menu,
+        .layout-navbar,
+        .content-backdrop,
+        .d-print-none,
+        .app-brand.demo {
+            display: none !important;
+        }
+
+        .layout-wrapper,
+        .layout-container,
+        .layout-page,
+        .content-wrapper,
+        .container-xxl,
+        .container-p-y {
+            padding: 0 !important;
+            margin: 0 !important;
+            max-width: none !important;
+        }
+
+        .receipt {
+            max-width: none;
+            box-shadow: none;
+            border-radius: 0;
+            padding: 0;
+        }
+    }
+</style>

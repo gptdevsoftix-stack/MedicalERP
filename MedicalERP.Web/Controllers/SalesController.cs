@@ -38,7 +38,7 @@ public sealed class SalesController(ISaleService service) : Controller
         {
             var id = await service.CreateAsync(model, cancellationToken);
             TempData["SuccessMessage"] = "Sale confirmed and stock updated.";
-            return RedirectToAction(nameof(Details), new { id, companyContextId = GetCompanyContextId() });
+            return RedirectToAction(nameof(Receipt), new { id, companyContextId = GetCompanyContextId() });
         }
         catch (Exception ex) when (ex is InvalidOperationException or UnauthorizedAccessException)
         {
@@ -51,6 +51,22 @@ public sealed class SalesController(ISaleService service) : Controller
     {
         var model = await service.GetDetailsAsync(id, cancellationToken);
         return model is null ? NotFound() : View(model);
+    }
+
+    [HttpGet, HasPermission(Permissions.Sales.View)]
+    public async Task<IActionResult> Receipt(Guid id, CancellationToken cancellationToken)
+    {
+        var model = await service.GetDetailsAsync(id, cancellationToken);
+        return model is null ? NotFound() : View(model);
+    }
+
+    [HttpGet, HasPermission(Permissions.Sales.View)]
+    public async Task<IActionResult> ReceiptPdf(Guid id, CancellationToken cancellationToken)
+    {
+        var model = await service.GetDetailsAsync(id, cancellationToken);
+        if (model is null) return NotFound();
+        var bytes = Models.SaleReceiptPdf.Build(model);
+        return File(bytes, "application/pdf", $"Receipt-{model.InvoiceNumber}.pdf");
     }
 
     [HttpGet, HasPermission(Permissions.Sales.View)]
