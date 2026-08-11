@@ -249,7 +249,7 @@
                     @if (HasPermission(Permissions.Sales.Return))
                     {
                         <li class="menu-item@(currentPath.Contains("/SaleReturns") ? " active" : "")">
-                            <a asp-controller="SaleReturns" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><i class="menu-icon tf-icons ti ti-reload"></i><div>Sale Returns</div></a>
+                            <a asp-controller="SaleReturns" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><i class="menu-icon tf-icons ti ti-receipt-refund"></i><div>Sale Returns</div></a>
                         </li>
                     }
                     @if (canViewSuppliers)

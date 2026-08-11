@@ -88,7 +88,6 @@
                 <div class="col-md-6 offset-md-6">
                     <div class="d-flex justify-content-between py-1"><span class="text-muted">Subtotal</span><strong id="return-subtotal">0.00</strong></div>
                     <div class="d-flex justify-content-between py-1"><span class="text-muted">Tax</span><strong id="return-tax">0.00</strong></div>
-                    <div class="d-flex justify-content-between py-2 border-top mt-1"><span class="fw-semibold">Refund amount</span><strong id="return-refund" class="fs-4 text-primary">0.00</strong></div>
                 </div>
             </div>
         </div>
@@ -117,7 +116,6 @@
                 });
                 document.getElementById('return-subtotal').textContent = subtotal.toFixed(2);
                 document.getElementById('return-tax').textContent = tax.toFixed(2);
-                document.getElementById('return-refund').textContent = (subtotal + tax).toFixed(2);
             };
             document.querySelectorAll('#return-lines input').forEach(input => input.addEventListener('input', recalc));
             recalc();
