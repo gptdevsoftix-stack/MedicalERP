@@ -129,6 +129,7 @@ public sealed class SaleReturn : StoreEntity
     public decimal TaxAmount { get; set; }
     public decimal RefundAmount { get; set; }
     public string? Reason { get; set; }
+    public Sale? Sale { get; set; }
     public ICollection<SaleReturnItem> Items { get; set; } = [];
 }
 
@@ -137,7 +138,7 @@ public sealed class SaleReturnItem : StoreEntity
     public Guid SaleReturnId { get; set; }
     public Guid SaleItemId { get; set; }
     public Guid ProductId { get; set; }
-    public Guid ProductBatchId { get; set; }
+    public Guid? ProductBatchId { get; set; }
     public decimal Quantity { get; set; }
     public decimal BaseQuantity { get; set; }
     public decimal UnitPrice { get; set; }
@@ -145,4 +146,6 @@ public sealed class SaleReturnItem : StoreEntity
     public decimal LineTotal { get; set; }
     public bool ReturnToStock { get; set; }
     public SaleReturn SaleReturn { get; set; } = null!;
+    public Product? Product { get; set; }
+    public ProductBatch? ProductBatch { get; set; }
 }

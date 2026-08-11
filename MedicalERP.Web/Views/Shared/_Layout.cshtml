@@ -246,6 +246,12 @@
                             <a asp-controller="Sales" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><i class="menu-icon tf-icons ti ti-shopping-cart"></i><div>Sales</div></a>
                         </li>
                     }
+                    @if (HasPermission(Permissions.Sales.Return))
+                    {
+                        <li class="menu-item@(currentPath.Contains("/SaleReturns") ? " active" : "")">
+                            <a asp-controller="SaleReturns" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><i class="menu-icon tf-icons ti ti-reload"></i><div>Sale Returns</div></a>
+                        </li>
+                    }
                     @if (canViewSuppliers)
                     {
                         <li class="menu-item@(currentPath.Contains("/Suppliers") ? " active" : "")">
