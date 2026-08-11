@@ -30,3 +30,187 @@ body { font-family: "Public Sans", sans-serif; }
 #theme-selector {
     min-width: 6.5rem;
 }
+
+/* POS sale screen */
+.pos-layout {
+    align-items: flex-start;
+}
+
+.pos-cart {
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100vh;
+    height: 100dvh;
+    width: min(100%, 400px);
+    z-index: 1200;
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+    transform: translateX(100%);
+    transition: transform .3s ease;
+}
+
+.pos-cart.open {
+    transform: translateX(0);
+    box-shadow: -12px 0 40px rgba(15, 23, 42, .18);
+}
+
+.pos-cart-body {
+    flex: 1 1 auto;
+    overflow-y: auto;
+}
+
+.pos-cart-close {
+    display: none;
+}
+
+.pos-cart-body .cart-line:not(:first-child) td {
+    border-top: 1px dashed #dbdade !important;
+}
+
+.pos-cart-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1150;
+    background: rgba(15, 23, 42, .5);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .25s ease, visibility .25s ease;
+}
+
+.pos-cart-backdrop.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.pos-mobile-bar {
+    position: fixed;
+    left: .75rem;
+    right: .75rem;
+    bottom: .75rem;
+    z-index: 1100;
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+    padding: .7rem 1rem;
+    border: 0;
+    border-radius: 1rem;
+    background: linear-gradient(135deg, #7367f0 0%, #5f4fd8 100%);
+    color: #fff;
+    box-shadow: 0 .5rem 1.5rem rgba(115, 103, 240, .4);
+}
+
+.pos-mobile-bar:hover {
+    color: #fff;
+}
+
+@media (min-width: 1200px) {
+    .pos-cart {
+        position: sticky;
+        top: 1rem;
+        height: auto;
+        width: auto;
+        border-radius: var(--bs-card-border-radius, .5rem);
+        transform: none;
+        transition: none;
+    }
+
+    .pos-cart.open {
+        box-shadow: none;
+    }
+
+    .pos-cart-close {
+        display: none !important;
+    }
+
+    .pos-cart-backdrop {
+        display: none;
+    }
+
+    .pos-mobile-bar {
+        display: none;
+    }
+}
+
+@media (max-width: 1199.98px) {
+    .pos-cart-close {
+        display: inline-flex;
+    }
+
+    .pos-mobile-bar {
+        display: flex;
+    }
+
+    #sale-form {
+        padding-bottom: 5.5rem;
+    }
+}
+
+.pos-product-tile {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 96px;
+    border-radius: 1rem;
+    border: 1px solid #dbdade;
+    background: #fff;
+    text-align: start;
+    box-shadow: 0 2px 8px rgba(75, 70, 92, .06);
+    transition: transform .12s ease, box-shadow .15s ease, border-color .15s ease;
+}
+
+.pos-product-tile:hover {
+    border-color: var(--medicalerp-accent);
+    box-shadow: 0 .4rem 1rem rgba(115, 103, 240, .22);
+    transform: translateY(-2px);
+}
+
+.pos-product-tile:active {
+    transform: scale(.97);
+}
+
+.pos-product-tile:disabled {
+    opacity: .55;
+    box-shadow: none;
+}
+
+.pos-tile-price {
+    font-size: 1.05rem;
+}
+
+.cart-line.sale-row-invalid td {
+    box-shadow: inset 0 0 0 1px #ff4c51;
+    border-radius: .5rem;
+}
+
+.dark-style .pos-product-tile {
+    border-color: #434968;
+    background: #2f3349;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .2);
+}
+
+.dark-style .pos-cart-body .cart-line:not(:first-child) td {
+    border-top-color: #434968;
+}
+
+.more-details summary {
+    list-style: none;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.more-details summary::-webkit-details-marker {
+    display: none;
+}
+
+.more-details[open] summary {
+    border-color: var(--medicalerp-accent);
+    color: var(--medicalerp-accent);
+}
+
+.qty-stepper .btn {
+    width: 34px;
+}

@@ -14,24 +14,42 @@
     const paymentMethod = document.getElementById('PaymentMethodId');
     const otherPaymentWrap = document.getElementById('other-payment-method-wrap');
     const otherPaymentInput = document.getElementById('OtherPaymentMethodName');
+    const grid = document.getElementById('product-grid');
+    const gridEmpty = document.getElementById('product-grid-empty');
+    const gridCount = document.getElementById('product-grid-count');
+    const cartCount = document.getElementById('cart-count');
+    const cart = document.getElementById('pos-cart');
+    const cartClose = document.getElementById('pos-cart-close');
+    const cartBackdrop = document.getElementById('pos-cart-backdrop');
+    const mobileBar = document.getElementById('pos-mobile-bar');
+    const mobileCount = document.getElementById('mobile-cart-count');
+    const mobileTotal = document.getElementById('mobile-cart-total');
     const saveButton = form?.querySelector('[data-save-button]');
     const saveLabel = saveButton?.querySelector('[data-save-label]');
     const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const cur = 'Rs';
     const money = value => (+value || 0).toFixed(2);
+    const fmt = value => `${cur} ${money(value)}`;
+    const fmtQty = value => (+value || 0).toLocaleString(undefined, { maximumFractionDigits: 4 });
     let submitted = false;
     let dirty = false;
 
     const productById = id => products.find(x => String(x.id) === String(id));
 
-    const productOptions = (selected, filter) => {
-        const q = (filter || '').trim().toLowerCase();
-        return '<option value="">Select product</option>' + products
-            .filter(x => !q || String(x.name).toLowerCase().includes(q))
-            .map(x => {
-                const stock = (+x.availableStock || 0).toLocaleString(undefined, { maximumFractionDigits: 4 });
-                return `<option value="${x.id}" ${String(x.id) === String(selected) ? 'selected' : ''}>${esc(x.name)} (stock: ${stock})</option>`;
-            })
-            .join('');
+    const updateCartCount = () => {
+        const count = [...body.children].filter(r => r.querySelector('[data-field="ProductId"]')?.value).length;
+        if (cartCount) cartCount.textContent = `${count} item${count === 1 ? '' : 's'}`;
+        if (mobileCount) mobileCount.textContent = `${count} item${count === 1 ? '' : 's'}`;
+    };
+
+    const openCart = () => {
+        if (cart) cart.classList.add('open');
+        if (cartBackdrop) cartBackdrop.classList.add('show');
+    };
+
+    const closeCart = () => {
+        if (cart) cart.classList.remove('open');
+        if (cartBackdrop) cartBackdrop.classList.remove('show');
     };
 
     const units = async (select, productId, selected) => {
@@ -49,7 +67,7 @@
 
     const setRowError = (row, message) => {
         let tip = row.querySelector('.sale-row-error');
-        if (!tip) { tip = document.createElement('td'); tip.colSpan = 8; tip.className = 'sale-row-error text-danger small pt-0'; row.appendChild(tip); }
+        if (!tip) { tip = document.createElement('div'); tip.className = 'sale-row-error text-danger small mt-1'; row.querySelector('td').appendChild(tip); }
         tip.textContent = message;
         row.classList.add('sale-row-invalid');
     };
@@ -63,10 +81,11 @@
     const refreshDuplicates = () => {
         const selected = new Set([...body.children].map(r => r.querySelector('[data-field="ProductId"]')?.value).filter(v => v));
         [...body.children].forEach(row => {
-            const select = row.querySelector('[data-field="ProductId"]');
-            [...select.options].forEach(opt => {
+            const productInput = row.querySelector('[data-field="ProductId"]');
+            if (!productInput || productInput.tagName !== 'SELECT') return;
+            [...productInput.options].forEach(opt => {
                 if (!opt.value) { opt.disabled = false; return; }
-                opt.disabled = opt.value !== select.value && selected.has(opt.value);
+                opt.disabled = opt.value !== productInput.value && selected.has(opt.value);
             });
         });
     };
@@ -79,55 +98,153 @@
             const discountAmount = +row.querySelector('[data-field="DiscountAmount"]')?.value || 0;
             const taxAmount = +row.querySelector('[data-field="TaxAmount"]')?.value || 0;
             const line = qty * price - discountAmount + taxAmount;
-            row.querySelector('[data-total]').textContent = money(line);
+            row.querySelector('[data-total]').textContent = fmt(line);
+            row.querySelector('[data-unit-price]').textContent = fmt(price);
             subtotal += qty * price; discount += discountAmount; tax += taxAmount;
         });
         const grandTotal = subtotal - discount + tax;
         const paid = +document.getElementById('PaidAmount')?.value || 0;
-        document.getElementById('sale-subtotal').textContent = money(subtotal);
-        document.getElementById('sale-discount').textContent = money(discount);
-        document.getElementById('sale-tax').textContent = money(tax);
-        document.getElementById('sale-total').textContent = money(grandTotal);
-        document.getElementById('sale-due').textContent = money(Math.max(grandTotal - paid, 0));
-        document.getElementById('sale-change').textContent = money(paid > grandTotal ? paid - grandTotal : 0);
+        document.getElementById('sale-subtotal').textContent = fmt(subtotal);
+        document.getElementById('sale-discount').textContent = fmt(discount);
+        document.getElementById('sale-tax').textContent = fmt(tax);
+        document.getElementById('sale-total').textContent = fmt(grandTotal);
+        document.getElementById('sale-due').textContent = fmt(Math.max(grandTotal - paid, 0));
+        document.getElementById('sale-change').textContent = fmt(paid > grandTotal ? paid - grandTotal : 0);
+        if (mobileTotal) mobileTotal.textContent = fmt(grandTotal);
     };
 
     const reindex = () => [...body.children].forEach((row, n) =>
         row.querySelectorAll('[name]').forEach(input => input.name = input.name.replace(/Items\[\d+\]/, `Items[${n}]`)));
 
     const add = item => {
+        const record = item?.ProductId ? productById(item.ProductId) : null;
         const i = body.children.length;
         const row = document.createElement('tr');
-        row.innerHTML = `<td><select name="Items[${i}].ProductId" data-field="ProductId" class="form-select form-select-sm">${productOptions(item?.ProductId)}</select>`
-            + `<div class="sale-stock small text-muted mt-1"></div></td>`
-            + `<td><select name="Items[${i}].ProductUnitId" data-field="ProductUnitId" class="form-select form-select-sm"><option value="">Select unit</option></select></td>`
-            + `<td><input name="Items[${i}].Quantity" data-field="Quantity" value="${item?.Quantity ?? ''}" type="number" min="0.0001" step="0.0001" placeholder="0" class="form-control form-control-sm" /></td>`
-            + `<td><input name="Items[${i}].UnitPrice" data-field="UnitPrice" value="${item?.UnitPrice ?? ''}" type="number" min="0" step="0.0001" class="form-control form-control-sm" /></td>`
-            + `<td><input name="Items[${i}].DiscountAmount" data-field="DiscountAmount" value="${item?.DiscountAmount ?? 0}" type="number" min="0" step="0.0001" class="form-control form-control-sm" /></td>`
-            + `<td><input name="Items[${i}].TaxAmount" data-field="TaxAmount" value="${item?.TaxAmount ?? 0}" type="number" min="0" step="0.0001" class="form-control form-control-sm" /></td>`
-            + `<td class="text-end" data-total>0.00</td>`
-            + `<td class="text-end"><button type="button" class="btn btn-sm btn-outline-danger remove-line" title="Remove line"><i class="ti ti-trash"></i></button></td>`;
+        row.className = 'cart-line';
+        row.innerHTML = `<td class="p-3">
+                <div class="d-flex justify-content-between align-items-start gap-2">
+                    <div class="cart-product-name fw-semibold text-truncate" style="min-width:0">${esc(record ? record.name : 'Product')}</div>
+                    <button type="button" class="btn btn-sm btn-icon btn-outline-danger remove-line" title="Remove line"><i class="ti ti-x"></i></button>
+                </div>
+                <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
+                    <select name="Items[${i}].ProductUnitId" data-field="ProductUnitId" class="form-select form-select-sm" style="max-width:32%" title="Unit"><option value="">Select unit</option></select>
+                    <div class="input-group input-group-sm qty-stepper" style="width:118px">
+                        <button type="button" class="btn btn-outline-secondary qty-minus" title="Decrease"><i class="ti ti-minus"></i></button>
+                        <input name="Items[${i}].Quantity" data-field="Quantity" value="${item?.Quantity ?? 1}" type="number" min="0.0001" step="1" class="form-control text-center" title="Quantity" />
+                        <button type="button" class="btn btn-outline-secondary qty-plus" title="Increase"><i class="ti ti-plus"></i></button>
+                    </div>
+                    <div class="ms-auto text-end">
+                        <div class="fw-semibold fs-5" data-total>0.00</div>
+                        <small class="text-muted" data-unit-price></small>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-sm btn-link p-0 mt-1 text-muted line-details-toggle"><i class="ti ti-adjustments-horizontal me-1"></i>Discount / Tax</button>
+                <div class="line-details mt-2" style="display:none">
+                    <div class="row g-2">
+                        <div class="col-4">
+                            <label class="form-label small mb-1">Price</label>
+                            <input name="Items[${i}].UnitPrice" data-field="UnitPrice" value="${item?.UnitPrice ?? record?.salePrice ?? ''}" type="number" min="0" step="0.0001" class="form-control form-control-sm text-end" />
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label small mb-1">Discount</label>
+                            <input name="Items[${i}].DiscountAmount" data-field="DiscountAmount" value="${item?.DiscountAmount ?? 0}" type="number" min="0" step="0.0001" class="form-control form-control-sm text-end" />
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label small mb-1">Tax</label>
+                            <input name="Items[${i}].TaxAmount" data-field="TaxAmount" value="${item?.TaxAmount ?? 0}" type="number" min="0" step="0.0001" class="form-control form-control-sm text-end" />
+                        </div>
+                    </div>
+                </div>
+                <div class="sale-row-error text-danger small mt-1"></div>
+            </td>`;
+        if (record) {
+            const hidden = document.createElement('input');
+            hidden.type = 'hidden';
+            hidden.name = `Items[${i}].ProductId`;
+            hidden.dataset.field = 'ProductId';
+            hidden.value = record.id;
+            row.querySelector('td').appendChild(hidden);
+        }
         body.appendChild(row);
 
-        const product = row.querySelector('[data-field="ProductId"]');
+        const productId = item?.ProductId ?? '';
         const unit = row.querySelector('[data-field="ProductUnitId"]');
+        const qty = row.querySelector('[data-field="Quantity"]');
         const price = row.querySelector('[data-field="UnitPrice"]');
-        const stockBox = row.querySelector('.sale-stock');
+        const details = row.querySelector('.line-details');
+        const toggle = row.querySelector('.line-details-toggle');
         const applyProduct = () => {
-            const record = productById(product.value);
-            const stockEl = record ? `${esc(record.name)}: available ${(+record.availableStock || 0).toLocaleString(undefined, { maximumFractionDigits: 4 })}` : '';
-            stockBox.textContent = stockEl;
+            const record = productById(productId);
             if (record && (+price.value || 0) === 0 && !item?.UnitPrice) price.value = record.salePrice || 0;
-            units(unit, product.value, item?.ProductUnitId);
+            units(unit, productId, item?.ProductUnitId);
             refreshDuplicates(); clearRowError(row); recalc(); markDirty();
         };
-        product.addEventListener('change', applyProduct);
         unit.addEventListener('change', () => { clearRowError(row); markDirty(); });
         row.querySelectorAll('[data-field]').forEach(input => input.addEventListener('input', () => { recalc(); clearRowError(row); markDirty(); }));
-        row.querySelector('.remove-line').addEventListener('click', () => { row.remove(); reindex(); refreshDuplicates(); recalc(); markDirty(); });
+        row.querySelector('.qty-minus').addEventListener('click', () => {
+            const v = +qty.value || 0;
+            qty.value = Math.max(v - 1, 1);
+            recalc(); clearRowError(row); markDirty();
+        });
+        row.querySelector('.qty-plus').addEventListener('click', () => {
+            qty.value = (+qty.value || 0) + 1;
+            recalc(); clearRowError(row); markDirty();
+        });
+        row.querySelector('.remove-line').addEventListener('click', () => { row.remove(); reindex(); refreshDuplicates(); recalc(); markDirty(); updateCartCount(); });
+        toggle.addEventListener('click', () => {
+            const show = details.style.display === 'none';
+            details.style.display = show ? '' : 'none';
+            toggle.innerHTML = `<i class="ti ti-adjustments-horizontal me-1"></i>${show ? 'Hide' : 'Discount / Tax'}`;
+        });
 
         applyProduct();
         recalc();
+        updateCartCount();
+    };
+
+    const quickAdd = id => {
+        const record = productById(id);
+        if (!record || (+record.availableStock || 0) <= 0) return;
+        const existing = [...body.children].find(r => String(r.querySelector('[data-field="ProductId"]')?.value) === String(id));
+        if (existing) {
+            const qty = existing.querySelector('[data-field="Quantity"]');
+            qty.value = (+qty.value || 0) + 1;
+            clearRowError(existing); recalc(); markDirty();
+            return;
+        }
+        add({ ProductId: id, Quantity: 1, UnitPrice: record.salePrice });
+    };
+
+    const renderGrid = () => {
+        const q = (filterBox.value || '').trim().toLowerCase();
+        const filtered = products.filter(x => !q || String(x.name).toLowerCase().includes(q));
+        grid.innerHTML = filtered.map(x => {
+            const outOfStock = (+x.availableStock || 0) <= 0;
+            return `<div class="col-6 col-md-4 col-xl-4 col-xxl-3">
+                        <button type="button" class="pos-product-tile btn w-100 h-100" data-id="${x.id}" ${outOfStock ? 'disabled' : ''} title="${outOfStock ? 'Out of stock' : ''}">
+                            <span class="pos-product-name text-truncate fw-semibold">${esc(x.name)}</span>
+                            <span class="d-flex justify-content-between align-items-center mt-2">
+                                <span class="pos-tile-price text-success fw-semibold">${fmt(x.salePrice)}</span>
+                                <span class="small ${outOfStock ? 'text-danger' : 'text-muted'}">${outOfStock ? 'Out of stock' : `${fmtQty(x.availableStock)} in stock`}</span>
+                            </span>
+                        </button>
+                    </div>`;
+        }).join('');
+        gridEmpty.classList.toggle('d-none', filtered.length > 0);
+        if (gridCount) gridCount.textContent = `${filtered.length} of ${products.length} products`;
+        [...grid.querySelectorAll('.pos-product-tile')].forEach(tile => {
+            tile.addEventListener('click', () => quickAdd(tile.dataset.id));
+        });
+    };
+
+    const clearCart = () => {
+        body.innerHTML = '';
+        reindex(); refreshDuplicates(); recalc(); markDirty(); updateCartCount();
+    };
+
+    const setPaid = value => {
+        const paid = document.getElementById('PaidAmount');
+        if (paid) { paid.value = value; recalc(); }
     };
 
     const validateHeader = () => {
@@ -164,7 +281,7 @@
     };
 
     const validateLines = () => {
-        let ok = true; const errors = []; const seen = new Map();
+        let ok = true; const seen = new Map();
         [...body.children].forEach(row => {
             clearRowError(row);
             const productId = row.querySelector('[data-field="ProductId"]')?.value;
@@ -179,11 +296,11 @@
             if (price < 0 || discount < 0 || tax < 0) { setRowError(row, 'Amounts cannot be negative.'); ok = false; return; }
             if (seen.has(productId)) { setRowError(row, 'Product is already added. Adjust quantity instead.'); seen.get(productId).classList.add('sale-row-invalid'); ok = false; return; }
             const record = productById(productId);
-            if (record && qty > (+record.availableStock || 0)) setRowError(row, `Only ${(+record.availableStock || 0)} unit(s) available. Stock will be validated on save.`);
+            if (record && qty > (+record.availableStock || 0)) setRowError(row, `Only ${fmtQty(record.availableStock)} unit(s) available. Stock will be validated on save.`);
             seen.set(productId, row);
         });
         if (body.querySelectorAll('tr').length === 0 || ![...body.children].some(r => r.querySelector('[data-field="ProductId"]')?.value)) {
-            ok = false; errors.push('Add at least one product line.');
+            ok = false;
         }
         return ok;
     };
@@ -198,7 +315,8 @@
         const headerOk = validateHeader();
         const linesOk = validateLines();
         if (!headerOk || !linesOk) {
-            lineErrors.textContent = 'Please correct the highlighted fields above before saving.';
+            const hasLines = body.querySelectorAll('tr').length > 0 && [...body.children].some(r => r.querySelector('[data-field="ProductId"]')?.value);
+            lineErrors.textContent = hasLines ? 'Please correct the highlighted fields above before saving.' : 'Select a product from the catalog to start the sale.';
             lineErrors.style.display = 'block';
             lineErrors.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             return false;
@@ -217,7 +335,7 @@
         });
         form.addEventListener('input', e => { if (e.target.matches('input, select, textarea')) markDirty(); });
         form.addEventListener('keydown', e => {
-            if (e.key === 'Enter' && e.target.matches('input[type="number"], input[type="search"]') && !e.target.closest('.input-group')) e.preventDefault();
+            if (e.key === 'Enter' && e.target.matches('input[type="number"], input[type="search"]')) e.preventDefault();
         });
     }
 
@@ -225,20 +343,32 @@
         if (dirty && !submitted) { e.preventDefault(); e.returnValue = ''; }
     });
 
-    document.getElementById('add-line').addEventListener('click', () => { add({}); filterBox.value = ''; });
-    filterBox.addEventListener('input', () => {
-        [...body.children].forEach(row => {
-            const select = row.querySelector('[data-field="ProductId"]');
-            const keep = select.value;
-            select.innerHTML = productOptions(keep, filterBox.value);
-        });
-        refreshDuplicates();
-    });
+    filterBox.addEventListener('input', renderGrid);
     document.getElementById('PaidAmount')?.addEventListener('input', recalc);
+    document.getElementById('clear-cart')?.addEventListener('click', clearCart);
+    mobileBar?.addEventListener('click', () => {
+        const open = !cart?.classList.contains('open');
+        cart?.classList.toggle('open', open);
+        cartBackdrop?.classList.toggle('show', open);
+    });
+    cartClose?.addEventListener('click', closeCart);
+    cartBackdrop?.addEventListener('click', closeCart);
+    document.getElementById('pay-exact')?.addEventListener('click', () => {
+        const total = +document.getElementById('sale-total').textContent || 0;
+        setPaid(total.toFixed(2));
+        markDirty();
+    });
+    document.getElementById('pay-cash')?.addEventListener('click', () => {
+        const total = +document.getElementById('sale-total').textContent || 0;
+        setPaid(Math.ceil(total));
+        markDirty();
+    });
+    document.getElementById('pay-none')?.addEventListener('click', () => { setPaid(''); markDirty(); });
     paymentMethod?.addEventListener('change', () => { toggleOtherPaymentMethod(); markDirty(); });
     otherPaymentInput?.addEventListener('input', () => { otherPaymentInput.classList.remove('is-invalid'); markDirty(); });
 
     toggleOtherPaymentMethod();
-    (initial.length ? initial : [{}]).forEach(add);
+    initial.forEach(add);
+    renderGrid();
 })();
 </script>

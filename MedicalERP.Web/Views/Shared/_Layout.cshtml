@@ -177,17 +177,17 @@
                     {
                         <li class="menu-item@(inventoryActive ? " active open" : "")">
                             <a href="javascript:void(0);" class="menu-link menu-toggle">
-                                <i class="menu-icon tf-icons ti ti-packages"></i>
+                                <i class="menu-icon tf-icons ti ti-box-multiple"></i>
                                 <div>Inventory</div>
 
 
                             </a>
                             <ul class="menu-sub">
                                 <li class="menu-item@(currentPath.Contains("/ProductBatches") ? " active" : "")">
-                                    <a asp-controller="ProductBatches" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><div>Product Batches</div></a>
+                                    <a asp-controller="ProductBatches" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><i class="menu-icon tf-icons ti ti-box-multiple"></i><div>Product Batches</div></a>
                                 </li>
                                 <li class="menu-item@(currentPath.Contains("/InventoryCrud") && Context.Request.Query["type"] == "StockTransactions" ? " active" : "")">
-                                    <a asp-controller="InventoryCrud" asp-action="Index" asp-route-type="StockTransactions" asp-route-companyContextId="@companyContextId" class="menu-link"><div>Stock Transactions</div></a>
+                                    <a asp-controller="InventoryCrud" asp-action="Index" asp-route-type="StockTransactions" asp-route-companyContextId="@companyContextId" class="menu-link"><i class="menu-icon tf-icons ti ti-arrows-left-right"></i><div>Stock Transactions</div></a>
                                 </li>
                                @*  <li class="menu-item@(currentPath.Contains("/InventoryCrud") && Context.Request.Query["type"] == "StockAdjustments" ? " active" : "")">
                                     <a asp-controller="InventoryCrud" asp-action="Index" asp-route-type="StockAdjustments" asp-route-companyContextId="@companyContextId" class="menu-link"><div>Stock Adjustments</div></a>
@@ -218,8 +218,20 @@
                     }
                     @if (canViewInventory)
                     {
-                        <li class="menu-item@(currentPath.Contains("/InventoryCrud") && Context.Request.Query["type"] == "InventoryStocks" ? " active" : "")">
-                            <a asp-controller="InventoryCrud" asp-action="Index" asp-route-type="InventoryStocks" asp-route-companyContextId="@companyContextId" class="menu-link"><div>Inventory Stock</div></a>
+                        <li class="menu-item@(currentPath.Contains("/InventoryCrud") &&
+                                Context.Request.Query["type"] == "InventoryStocks"
+                                    ? " active"
+                                    : "")">
+
+                            <a asp-controller="InventoryCrud"
+                               asp-action="Index"
+                               asp-route-type="InventoryStocks"
+                               asp-route-companyContextId="@companyContextId"
+                               class="menu-link">
+
+                                <i class="menu-icon tf-icons ti ti-stack-2"></i>
+                                <div>Inventory Stock</div>
+                            </a>
                         </li>
                     }
                     @if (canViewPurchases)

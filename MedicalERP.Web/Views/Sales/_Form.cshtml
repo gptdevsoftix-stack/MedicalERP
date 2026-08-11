@@ -1,63 +1,150 @@
 @model MedicalERP.Application.Sales.Dtos.SaleFormDto
 @using System.Text.Json
-@{ var products = (IEnumerable<MedicalERP.Application.Sales.Dtos.SaleProductLookupDto>)ViewBag.Products; }
+@{
+    var products = (IEnumerable<MedicalERP.Application.Sales.Dtos.SaleProductLookupDto>)ViewBag.Products;
+}
 <div asp-validation-summary="ModelOnly" class="text-danger mb-3" id="sale-error-summary"></div>
-<div class="card mb-3">
-    <div class="card-header"><h5 class="mb-0">Sale Details</h5></div>
-    <div class="card-body">
-        <div class="row g-3">
-            <div class="col-md-4"><label asp-for="CustomerId" class="form-label">Customer</label><select asp-for="CustomerId" asp-items="ViewBag.Customers" class="form-select"><option value="">Walk-in customer</option></select></div>
-            <div class="col-md-4"><label asp-for="InvoiceNumber" class="form-label"><span class="text-danger">*</span> Invoice Number</label><input asp-for="InvoiceNumber" class="form-control" data-required placeholder="e.g. INV-20260807-001" /><span asp-validation-for="InvoiceNumber" class="text-danger"></span></div>
-            <div class="col-md-4"><label asp-for="SaleDate" class="form-label"><span class="text-danger">*</span> Sale Date</label><input asp-for="SaleDate" type="datetime-local" class="form-control" data-required /><span asp-validation-for="SaleDate" class="text-danger"></span></div>
-            <div class="col-md-4"><label asp-for="WarehouseId" class="form-label">Warehouse</label><select asp-for="WarehouseId" asp-items="ViewBag.Warehouses" class="form-select"><option value="">No warehouse assigned</option></select></div>
-            <div class="col-md-4"><label asp-for="RegisterSessionId" class="form-label">Register Session</label><select asp-for="RegisterSessionId" asp-items="ViewBag.RegisterSessions" class="form-select"><option value="">Auto-open on save</option></select><small class="text-muted d-block">An open register session is used for this sale.</small></div>
-            <div class="col-12"><label asp-for="Notes" class="form-label">Notes</label><textarea asp-for="Notes" class="form-control" rows="2" placeholder="Optional internal notes"></textarea></div>
+
+<div class="row g-3 pos-layout">
+    <div class="col-12 col-xl-8">
+        <div class="card mb-3">
+            <div class="card-body py-3">
+                <div class="row g-3 align-items-end">
+                    <div class="col-sm-6 col-lg-4 col-xl-3">
+                        <label asp-for="CustomerId" class="form-label">Customer</label>
+                        <select asp-for="CustomerId" asp-items="ViewBag.Customers" class="form-select"><option value="">Walk-in customer</option></select>
+                    </div>
+                    <div class="col-sm-6 col-lg-4 col-xl-3">
+                        <label asp-for="InvoiceNumber" class="form-label"><span class="text-danger">*</span> Invoice #</label>
+                        <input asp-for="InvoiceNumber" class="form-control" data-required placeholder="INV-20260807-001" />
+                        <span asp-validation-for="InvoiceNumber" class="text-danger"></span>
+                    </div>
+                    <div class="col-sm-6 col-lg-4 col-xl-3">
+                        <label asp-for="SaleDate" class="form-label"><span class="text-danger">*</span> Sale Date</label>
+                        <input asp-for="SaleDate" type="datetime-local" class="form-control" data-required />
+                        <span asp-validation-for="SaleDate" class="text-danger"></span>
+                    </div>
+                    <div class="col-12 col-xl-3">
+                        <details class="more-details">
+                            <summary class="btn btn-sm btn-outline-secondary w-100">
+                                <i class="ti ti-adjustments-horizontal me-1"></i>More options
+                            </summary>
+                            <div class="mt-3">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label asp-for="WarehouseId" class="form-label">Warehouse</label>
+                                        <select asp-for="WarehouseId" asp-items="ViewBag.Warehouses" class="form-select"><option value="">No warehouse assigned</option></select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label asp-for="RegisterSessionId" class="form-label">Register Session</label>
+                                        <select asp-for="RegisterSessionId" asp-items="ViewBag.RegisterSessions" class="form-select"><option value="">Auto-open on save</option></select>
+                                        <small class="text-muted d-block">An open register session is used for this sale.</small>
+                                    </div>
+                                    <div class="col-12">
+                                        <label asp-for="Notes" class="form-label">Notes</label>
+                                        <textarea asp-for="Notes" class="form-control" rows="2" placeholder="Optional internal notes"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </details>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <div>
+                    <h5 class="mb-0"><i class="ti ti-basket me-1 text-primary"></i>Product Catalog</h5>
+                    <small class="text-muted" id="product-grid-count"></small>
+                </div>
+                <div class="input-group input-group-sm flex-grow-1 flex-lg-grow-0" style="min-width:220px; max-width:320px">
+                    <span class="input-group-text"><i class="ti ti-search"></i></span>
+                    <input type="search" id="product-filter" class="form-control" placeholder="Search products..." autocomplete="off" />
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row g-3" id="product-grid"></div>
+                <div id="product-grid-empty" class="text-center text-muted py-5 d-none">
+                    <i class="ti ti-package d-block mb-1 fs-4"></i>
+                    No products match your search.
+                </div>
+            </div>
         </div>
     </div>
-</div>
-<div class="card mb-3">
-    <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
-        <h5 class="mb-0">Sale Lines</h5>
-        <div class="d-flex gap-2 align-items-center">
-            <input type="search" id="product-filter" class="form-control form-control-sm" style="min-width:220px" placeholder="Filter products..." />
-            <button type="button" id="add-line" class="btn btn-sm btn-outline-primary"><i class="ti ti-plus me-1"></i>Add line</button>
-        </div>
-    </div>
-    <div class="table-responsive">
-        <table class="table align-middle mb-0">
-            <thead><tr><th style="min-width:240px">Product</th><th style="min-width:150px">Unit</th><th style="min-width:90px">Qty</th><th style="min-width:110px">Unit Price</th><th style="min-width:110px">Discount</th><th style="min-width:110px">Tax</th><th class="text-end" style="min-width:90px">Total</th><th></th></tr></thead>
-            <tbody id="sale-lines"></tbody>
-        </table>
-    </div>
-    <div class="card-footer">
-        <div class="row justify-content-end">
-            <div class="col-md-5 col-lg-4">
+
+    <div class="col-12 col-xl-4">
+        <div class="card pos-cart" id="pos-cart">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="ti ti-shopping-cart me-1 text-primary"></i>Current Order</h5>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" id="clear-cart" class="btn btn-sm btn-outline-secondary"><i class="ti ti-eraser me-1"></i><span class="d-none d-md-inline">Clear</span></button>
+                    <span class="badge bg-label-primary" id="cart-count">0 items</span>
+                    <button type="button" class="btn btn-sm btn-icon btn-outline-secondary pos-cart-close" id="pos-cart-close" title="Close cart"><i class="ti ti-x"></i></button>
+                </div>
+            </div>
+            <div class="card-body p-0 pos-cart-body">
+                <table class="table table-borderless align-middle mb-0">
+                    <tbody id="sale-lines"></tbody>
+                </table>
+            </div>
+            <div class="card-footer border-top">
                 <div class="d-flex justify-content-between py-1"><span class="text-muted">Subtotal</span><strong id="sale-subtotal">0.00</strong></div>
                 <div class="d-flex justify-content-between py-1"><span class="text-muted">Discount</span><strong id="sale-discount">0.00</strong></div>
                 <div class="d-flex justify-content-between py-1"><span class="text-muted">Tax</span><strong id="sale-tax">0.00</strong></div>
-                <hr class="my-1" />
-                <div class="d-flex justify-content-between"><span class="fw-semibold">Grand total</span><strong id="sale-total" class="fs-5">0.00</strong></div>
+                <div class="d-flex justify-content-between align-items-center py-2 border-top mt-1">
+                    <span class="fw-semibold">Total</span><strong id="sale-total" class="fs-3 text-primary">0.00</strong>
+                </div>
+
+                <div class="row g-2 mt-1">
+                    <div class="col-12">
+                        <label asp-for="PaymentMethodId" class="form-label small mb-1">Payment Method</label>
+                        <select asp-for="PaymentMethodId" asp-items="ViewBag.PaymentMethods" class="form-select form-select-sm" id="PaymentMethodId"><option value="">No payment now</option></select>
+                    </div>
+                    <div class="col-6">
+                        <label asp-for="PaidAmount" class="form-label small mb-1">Amount Paid</label>
+                        <div class="input-group input-group-sm"><span class="input-group-text">Rs</span><input asp-for="PaidAmount" type="number" min="0" step="0.01" class="form-control" id="PaidAmount" /></div>
+                    </div>
+                    <div class="col-6">
+                        <label asp-for="PaymentReference" class="form-label small mb-1">Reference</label>
+                        <input asp-for="PaymentReference" class="form-control form-control-sm" placeholder="Receipt / ref" />
+                    </div>
+                    <div class="col-12 d-flex gap-2">
+                        <button type="button" id="pay-exact" class="btn btn-sm btn-outline-primary flex-fill" title="Pay exactly the total">Exact</button>
+                        <button type="button" id="pay-cash" class="btn btn-sm btn-outline-primary flex-fill" title="Round up to the nearest whole dollar">Cash</button>
+                        <button type="button" id="pay-none" class="btn btn-sm btn-outline-secondary flex-fill" title="Clear the amount paid">No payment</button>
+                    </div>
+                    <div class="col-12" id="other-payment-method-wrap" style="display:none">
+                        <label asp-for="OtherPaymentMethodName" class="form-label small mb-1">Other Payment Method</label>
+                        <input asp-for="OtherPaymentMethodName" class="form-control form-control-sm" placeholder="Enter payment method" />
+                        <span asp-validation-for="OtherPaymentMethodName" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between py-1 mt-2 border-top">
+                    <span class="text-muted">Balance due</span><strong id="sale-due">0.00</strong>
+                </div>
+                <div class="d-flex justify-content-between py-1">
+                    <span class="text-muted">Change</span><strong id="sale-change">0.00</strong>
+                </div>
+
+                <button type="submit" class="btn btn-success btn-lg w-100 mt-3">
+                    <i class="ti ti-cash me-1"></i>Confirm Sale
+                </button>
             </div>
         </div>
     </div>
 </div>
-<div class="card">
-    <div class="card-header"><h5 class="mb-0">Payment</h5></div>
-    <div class="card-body">
-        <div class="row g-3">
-            <div class="col-md-4"><label asp-for="PaymentMethodId" class="form-label">Payment Method</label><select asp-for="PaymentMethodId" asp-items="ViewBag.PaymentMethods" class="form-select" id="PaymentMethodId"><option value="">No payment now</option></select></div>
-            <div class="col-md-4"><label asp-for="PaidAmount" class="form-label">Amount Paid</label><div class="input-group"><span class="input-group-text">$</span><input asp-for="PaidAmount" type="number" min="0" step="0.01" class="form-control" id="PaidAmount" /></div></div>
-            <div class="col-md-4"><label asp-for="PaymentReference" class="form-label">Reference</label><input asp-for="PaymentReference" class="form-control" placeholder="e.g. receipt or transfer ref" /></div>
-            <div class="col-md-4" id="other-payment-method-wrap" style="display:none"><label asp-for="OtherPaymentMethodName" class="form-label">Other Payment Method</label><input asp-for="OtherPaymentMethodName" class="form-control" placeholder="Enter payment method" /><span asp-validation-for="OtherPaymentMethodName" class="text-danger"></span></div>
-        </div>
-        <div class="row justify-content-end mt-3">
-            <div class="col-md-5 col-lg-4">
-                <div class="d-flex justify-content-between py-1"><span class="text-muted">Balance due</span><strong id="sale-due">0.00</strong></div>
-                <div class="d-flex justify-content-between py-1"><span class="text-muted">Change</span><strong id="sale-change">0.00</strong></div>
-            </div>
-        </div>
-    </div>
-</div>
+
+<div class="pos-cart-backdrop" id="pos-cart-backdrop"></div>
+<button type="button" class="pos-mobile-bar" id="pos-mobile-bar">
+    <span class="d-flex align-items-center gap-2">
+        <i class="ti ti-shopping-cart fs-5"></i>
+        <span id="mobile-cart-count" class="fw-semibold">0 items</span>
+    </span>
+    <strong id="mobile-cart-total" class="fs-5">Rs 0.00</strong>
+</button>
+
 <div class="text-danger mt-2" id="sale-line-errors" style="display:none"></div>
 <script id="product-data" type="application/json">@Html.Raw(JsonSerializer.Serialize(products))</script>
 <script id="initial-items" type="application/json">@Html.Raw(JsonSerializer.Serialize(Model.Items))</script>
