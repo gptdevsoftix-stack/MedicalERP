@@ -1,37 +1,263 @@
-﻿@{
+﻿@model MedicalERP.Application.Reports.Dtos.DashboardDto
+@using System.Text.Json
+@using System.Text.Json.Serialization
+@using MedicalERP.Domain.Enums
+@{
     ViewData["Title"] = "Dashboard";
+    var companyContextId = ViewBag.CompanyContextId as string;
+    var days = Model.SalesLast14Days.Select(d => d.Day.ToString("MMM d")).ToArray();
+    var revenue = Model.SalesLast14Days.Select(d => d.Revenue).ToArray();
+    var paymentNames = Model.PaymentMethodMix.Select(p => p.PaymentMethodName).ToArray();
+    var paymentAmounts = Model.PaymentMethodMix.Select(p => p.Amount).ToArray();
+    var jsOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+    string Json(object? value) => Html.Raw(JsonSerializer.Serialize(value, jsOptions)).ToString();
 }
 
-<div class="medical-page-title">
-    <h1>Dashboard</h1>
-    <p>Medical ERP and POS command center.</p>
-</div>
-
-<div class="card hero-card mb-4">
-    <div class="card-body d-flex flex-column gap-3">
-        <div>
-            <h1 class="mb-2">Medical ERP & POS</h1>
-            <p class="mb-0">Manage companies, stores, warehouses, users, permissions, and POS operations from a POS-style admin workspace.</p>
-        </div>
-        <div class="d-flex flex-wrap gap-2">
-            <a class="btn btn-primary" asp-controller="Companies" asp-action="Index"><i class="ti ti-building-skyscraper me-1"></i>Companies</a>
-            <a class="btn btn-label-primary" asp-controller="Stores" asp-action="Index"><i class="ti ti-building-store me-1"></i>Stores</a>
-            <a class="btn btn-label-secondary" href="/api/permissions"><i class="ti ti-lock me-1"></i>Permissions API</a>
-        </div>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h2 class="mb-1">Dashboard</h2>
+        <div class="text-muted">Medical ERP and POS command center.</div>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-controller="Sales" asp-action="Create" asp-route-companyContextId="@companyContextId" class="btn btn-primary"><i class="ti ti-plus me-1"></i>New Sale</a>
+        <a asp-controller="Reports" asp-action="Sales" asp-route-companyContextId="@companyContextId" class="btn btn-outline-primary"><i class="ti ti-chart-bar me-1"></i>Sales Report</a>
     </div>
 </div>
 
-<div class="row g-4">
+@if (!Model.HasContext)
+{
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <i class="ti ti-building-store ti-xl text-muted mb-3 d-block"></i>
+            <h4>No store context selected</h4>
+            <p class="text-muted mb-0">Select a company and store to view sales analytics.</p>
+        </div>
+    </div>
+    return;
+}
+
+<div class="row g-4 mb-4">
     <div class="col-md-6 col-xl-3">
-        <div class="card medical-stat-card"><div class="card-body"><div class="d-flex align-items-center gap-3"><span class="avatar rounded bg-label-primary"><i class="ti ti-building-skyscraper ti-md"></i></span><div><h5 class="mb-1">Companies</h5><p class="mb-0 text-muted">Tenant setup</p></div></div></div></div>
+        <div class="card medical-stat-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="mb-1">Today's Sales</h5>
+                        <h3 class="mb-0">@Model.Today.SalesCount</h3>
+                    </div>
+                    <span class="avatar rounded bg-label-success"><i class="ti ti-shopping-cart ti-md"></i></span>
+                </div>
+                <div class="mt-2 text-muted small">@Model.Today.ItemsQuantity.ToString("N0") item(s) sold</div>
+            </div>
+        </div>
     </div>
     <div class="col-md-6 col-xl-3">
-        <div class="card medical-stat-card"><div class="card-body"><div class="d-flex align-items-center gap-3"><span class="avatar rounded bg-label-success"><i class="ti ti-building-store ti-md"></i></span><div><h5 class="mb-1">Stores</h5><p class="mb-0 text-muted">Store operations</p></div></div></div></div>
+        <div class="card medical-stat-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="mb-1">Today's Revenue</h5>
+                        <h3 class="mb-0 text-success">@Model.Today.Revenue.ToString("N2")</h3>
+                    </div>
+                    <span class="avatar rounded bg-label-primary"><i class="ti ti-currency-dollar ti-md"></i></span>
+                </div>
+                <div class="mt-2 text-muted small">Avg @Model.Today.AverageSaleValue.ToString("N2") / sale</div>
+            </div>
+        </div>
     </div>
     <div class="col-md-6 col-xl-3">
-        <div class="card medical-stat-card"><div class="card-body"><div class="d-flex align-items-center gap-3"><span class="avatar rounded bg-label-warning"><i class="ti ti-building-warehouse ti-md"></i></span><div><h5 class="mb-1">Warehouses</h5><p class="mb-0 text-muted">Stock locations</p></div></div></div></div>
+        <div class="card medical-stat-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="mb-1">This Month</h5>
+                        <h3 class="mb-0">@Model.ThisMonth.Revenue.ToString("N2")</h3>
+                    </div>
+                    <span class="avatar rounded bg-label-info"><i class="ti ti-calendar-month ti-md"></i></span>
+                </div>
+                <div class="mt-2 text-muted small">@Model.ThisMonth.SalesCount sale(s) · @Model.ThisMonth.GrossProfit.ToString("N2") profit</div>
+            </div>
+        </div>
     </div>
     <div class="col-md-6 col-xl-3">
-        <div class="card medical-stat-card"><div class="card-body"><div class="d-flex align-items-center gap-3"><span class="avatar rounded bg-label-info"><i class="ti ti-users ti-md"></i></span><div><h5 class="mb-1">Users</h5><p class="mb-0 text-muted">Access control</p></div></div></div></div>
+        <div class="card medical-stat-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="mb-1">Amount Due</h5>
+                        <h3 class="mb-0 text-danger">@Model.ThisMonth.Due.ToString("N2")</h3>
+                    </div>
+                    <span class="avatar rounded bg-label-warning"><i class="ti ti-alert-triangle ti-md"></i></span>
+                </div>
+                <div class="mt-2 text-muted small">@Model.LowStock.Count low stock item(s)</div>
+            </div>
+        </div>
     </div>
 </div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-8">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Sales Trend &mdash; Last 14 Days</h5>
+                <span class="badge bg-label-primary">@Model.SalesLast14Days.Sum(x => x.Revenue).ToString("N2") total</span>
+            </div>
+            <div class="card-body"><canvas id="sales-trend-chart" height="120"></canvas></div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-header"><h5 class="mb-0">Payment Methods &mdash; This Month</h5></div>
+            <div class="card-body"><canvas id="payment-chart" height="120"></canvas></div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header"><h5 class="mb-0">Top Products &mdash; This Month</h5></div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead><tr><th>Product</th><th class="text-end">Qty</th><th class="text-end">Revenue</th></tr></thead>
+                    <tbody>
+                        @if (Model.TopProducts.Count == 0)
+                        {
+                            <tr><td colspan="3" class="text-center py-4">No sales yet this month.</td></tr>
+                        }
+                        @foreach (var product in Model.TopProducts)
+                        {
+                            <tr>
+                                <td>@product.ProductName</td>
+                                <td class="text-end">@product.Quantity.ToString("N2")</td>
+                                <td class="text-end">@product.Revenue.ToString("N2")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header"><h5 class="mb-0">Low Stock Alerts</h5></div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead><tr><th>Product</th><th class="text-end">Available</th><th class="text-end">Reorder Level</th></tr></thead>
+                    <tbody>
+                        @if (Model.LowStock.Count == 0)
+                        {
+                            <tr><td colspan="3" class="text-center py-4 text-success"><i class="ti ti-circle-check me-1"></i>All products are above reorder level.</td></tr>
+                        }
+                        @foreach (var item in Model.LowStock)
+                        {
+                            <tr>
+                                <td>@item.ProductName</td>
+                                <td class="text-end text-danger fw-semibold">@item.AvailableQuantity.ToString("N2")</td>
+                                <td class="text-end">@item.ReorderLevel.ToString("N2")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Recent Sales</h5>
+        <a asp-controller="Sales" asp-action="Index" asp-route-companyContextId="@companyContextId" class="btn btn-sm btn-outline-primary">View all</a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead><tr><th>Invoice</th><th>Customer</th><th>Date</th><th>Payment</th><th class="text-end">Total</th><th></th></tr></thead>
+            <tbody>
+                @if (Model.RecentSales.Count == 0)
+                {
+                    <tr><td colspan="6" class="text-center py-4">No sales recorded yet.</td></tr>
+                }
+                @foreach (var sale in Model.RecentSales)
+                {
+                    <tr>
+                        <td><a asp-controller="Sales" asp-action="Details" asp-route-id="@sale.Id" asp-route-companyContextId="@companyContextId" class="fw-semibold">@sale.InvoiceNumber</a></td>
+                        <td>@(sale.CustomerName ?? "Walk-in customer")</td>
+                        <td>@sale.SaleDate.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td><span class="badge bg-@(sale.PaymentStatus switch { PaymentStatus.Paid => "success", PaymentStatus.PartiallyPaid => "warning", PaymentStatus.Unpaid => "secondary", _ => "info" })">@sale.PaymentStatus</span></td>
+                        <td class="text-end">@sale.GrandTotal.ToString("N2")</td>
+                        <td class="text-end"><a asp-controller="Sales" asp-action="Receipt" asp-route-id="@sale.Id" class="btn btn-sm btn-outline-secondary"><i class="ti ti-receipt"></i></a></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/assets/vendor/libs/chartjs/chartjs.js"></script>
+    <script>
+        (() => {
+            const colors = {
+                primary: 'rgba(115, 103, 240, 1)',
+                primarySoft: 'rgba(115, 103, 240, 0.15)',
+                success: 'rgba(40, 199, 111, 1)',
+                successSoft: 'rgba(40, 199, 111, 0.15)',
+                warning: 'rgba(255, 159, 67, 1)',
+                info: 'rgba(0, 207, 232, 1)',
+                danger: 'rgba(234, 84, 85, 1)',
+                grid: 'rgba(75, 70, 92, 0.08)'
+            };
+            const palette = [colors.primary, colors.success, colors.info, colors.warning, colors.danger];
+
+            const trendEl = document.getElementById('sales-trend-chart');
+            if (trendEl) {
+                new Chart(trendEl, {
+                    type: 'bar',
+                    data: {
+                        labels: @Json(days),
+                        datasets: [{
+                            label: 'Revenue',
+                            data: @Json(revenue),
+                            backgroundColor: colors.primarySoft,
+                            borderColor: colors.primary,
+                            borderWidth: 2,
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { beginAtZero: true, grid: { color: colors.grid }, ticks: { callback: v => Number(v).toLocaleString() } },
+                            x: { grid: { display: false } }
+                        }
+                    }
+                });
+            }
+
+            const paymentEl = document.getElementById('payment-chart');
+            if (paymentEl) {
+                new Chart(paymentEl, {
+                    type: 'doughnut',
+                    data: {
+                        labels: @Json(paymentNames),
+                        datasets: [{
+                            data: @Json(paymentAmounts),
+                            backgroundColor: palette,
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '68%',
+                        plugins: {
+                            legend: { position: 'bottom', labels: { boxWidth: 12, padding: 16 } }
+                        }
+                    }
+                });
+            }
+        })();
+    </script>
+}

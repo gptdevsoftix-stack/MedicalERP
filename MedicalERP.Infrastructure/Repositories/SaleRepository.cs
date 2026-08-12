@@ -23,14 +23,14 @@ public sealed class SaleRepository(ApplicationDbContext context) : ISaleReposito
             .Include(x => x.Payments).ThenInclude(x => x.PaymentMethod);
     }
 
-    public Task<int> CountAsync(Guid companyId, Guid storeId, string? search, int? status, int? paymentStatus, CancellationToken cancellationToken = default)
+    public Task<int> CountAsync(Guid companyId, Guid storeId, string? search, int? status, int? paymentStatus, DateTimeOffset? from, DateTimeOffset? to, CancellationToken cancellationToken = default)
     {
-        return ApplyFilters(context.Sales.Where(x => x.CompanyId == companyId && x.StoreId == storeId), search, status, paymentStatus).CountAsync(cancellationToken);
+        return ApplyFilters(context.Sales.Where(x => x.CompanyId == companyId && x.StoreId == storeId), search, status, paymentStatus, from, to).CountAsync(cancellationToken);
     }
 
-    public async Task<IReadOnlyList<Sale>> GetAsync(Guid companyId, Guid storeId, string? search, int? status, int? paymentStatus, int skip, int take, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<Sale>> GetAsync(Guid companyId, Guid storeId, string? search, int? status, int? paymentStatus, DateTimeOffset? from, DateTimeOffset? to, int skip, int take, CancellationToken cancellationToken = default)
     {
-        return await ApplyFilters(Query(companyId, storeId), search, status, paymentStatus)
+        return await ApplyFilters(Query(companyId, storeId), search, status, paymentStatus, from, to)
             .OrderByDescending(x => x.SaleDate).ThenByDescending(x => x.InvoiceNumber)
             .Skip(skip).Take(take).AsNoTracking().ToListAsync(cancellationToken);
     }
@@ -157,10 +157,12 @@ public sealed class SaleRepository(ApplicationDbContext context) : ISaleReposito
 
     public Task SaveChangesAsync(CancellationToken cancellationToken = default) => context.SaveChangesAsync(cancellationToken);
 
-    private static IQueryable<Sale> ApplyFilters(IQueryable<Sale> query, string? search, int? status, int? paymentStatus)
+    private static IQueryable<Sale> ApplyFilters(IQueryable<Sale> query, string? search, int? status, int? paymentStatus, DateTimeOffset? from, DateTimeOffset? to)
     {
         if (status.HasValue) query = query.Where(x => (int)x.Status == status.Value);
         if (paymentStatus.HasValue) query = query.Where(x => (int)x.PaymentStatus == paymentStatus.Value);
+        if (from.HasValue) query = query.Where(x => x.SaleDate >= from.Value);
+        if (to.HasValue) query = query.Where(x => x.SaleDate < to.Value);
         if (!string.IsNullOrWhiteSpace(search))
         {
             var value = search.Trim();

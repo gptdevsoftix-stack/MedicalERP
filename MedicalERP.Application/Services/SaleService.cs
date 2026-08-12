@@ -34,8 +34,8 @@ public sealed class SaleService(
         var pageSize = Math.Clamp(filter.PageSize, 10, 100);
         int? status = filter.Status.HasValue ? (int)filter.Status.Value : null;
         int? paymentStatus = filter.PaymentStatus.HasValue ? (int)filter.PaymentStatus.Value : null;
-        var total = await repository.CountAsync(companyId, storeId, filter.Search, status, paymentStatus, cancellationToken);
-        var rows = await repository.GetAsync(companyId, storeId, filter.Search, status, paymentStatus, (page - 1) * pageSize, pageSize, cancellationToken);
+        var total = await repository.CountAsync(companyId, storeId, filter.Search, status, paymentStatus, filter.From, filter.To, cancellationToken);
+        var rows = await repository.GetAsync(companyId, storeId, filter.Search, status, paymentStatus, filter.From, filter.To, (page - 1) * pageSize, pageSize, cancellationToken);
         return new PagedResult<SaleListDto>(rows.Select(MapList).ToList(), page, pageSize, total);
     }
 

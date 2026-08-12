@@ -9,8 +9,8 @@ namespace MedicalERP.Domain.Interfaces;
 
 public interface ISaleRepository
 {
-    Task<int> CountAsync(Guid companyId, Guid storeId, string? search, int? status, int? paymentStatus, CancellationToken cancellationToken = default);
-    Task<IReadOnlyList<Sale>> GetAsync(Guid companyId, Guid storeId, string? search, int? status, int? paymentStatus, int skip, int take, CancellationToken cancellationToken = default);
+    Task<int> CountAsync(Guid companyId, Guid storeId, string? search, int? status, int? paymentStatus, DateTimeOffset? from, DateTimeOffset? to, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<Sale>> GetAsync(Guid companyId, Guid storeId, string? search, int? status, int? paymentStatus, DateTimeOffset? from, DateTimeOffset? to, int skip, int take, CancellationToken cancellationToken = default);
     Task<Sale?> GetByIdAsync(Guid id, Guid companyId, Guid storeId, bool tracking, CancellationToken cancellationToken = default);
     Task<bool> InvoiceNumberExistsAsync(Guid companyId, Guid storeId, string invoiceNumber, Guid? excludedId, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<Customer>> GetCustomersAsync(Guid companyId, CancellationToken cancellationToken = default);

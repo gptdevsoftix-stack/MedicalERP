@@ -1,0 +1,182 @@
+@model MedicalERP.Application.Reports.Dtos.SalesReportDto
+@using System.Text.Json
+@using System.Text.Json.Serialization
+@using MedicalERP.Domain.Enums
+@{
+    ViewData["Title"] = "Sales Report";
+    var companyContextId = ViewBag.CompanyContextId as string;
+    var filter = Model.Filter;
+    var totalPages = (int)Math.Ceiling(Model.Sales.TotalCount / (double)Model.Sales.PageSize);
+    var days = Model.ByDay.Select(d => d.Day.ToString("MMM d")).ToArray();
+    var revenue = Model.ByDay.Select(d => d.Revenue).ToArray();
+    var paymentNames = Model.PaymentMethodMix.Select(p => p.PaymentMethodName).ToArray();
+    var paymentAmounts = Model.PaymentMethodMix.Select(p => p.Amount).ToArray();
+    var jsOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+    string Json(object? value) => Html.Raw(JsonSerializer.Serialize(value, jsOptions)).ToString();
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div><h2 class="mb-1">Sales Report</h2><div class="text-muted">Revenue, profit, and sales breakdown for the selected period.</div></div>
+    <button type="button" class="btn btn-outline-primary" onclick="window.print()"><i class="ti ti-printer me-1"></i>Print</button>
+</div>
+
+<form method="get" class="card card-body mb-3">
+    <input type="hidden" name="companyContextId" value="@companyContextId" />
+    <div class="row g-2 align-items-end">
+        <div class="col-md-2">
+            <label class="form-label">From</label>
+            <input type="date" name="From" value="@(filter.From?.ToString("yyyy-MM-dd"))" class="form-control" />
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">To</label>
+            <input type="date" name="To" value="@(filter.To?.ToString("yyyy-MM-dd"))" class="form-control" />
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Search</label>
+            <input name="Search" value="@filter.Search" class="form-control" placeholder="Invoice number or customer" />
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Status</label>
+            <select name="Status" class="form-select"><option value="">All statuses</option>@foreach (var item in Enum.GetValues<SaleStatus>()) { <option value="@item" selected="@(filter.Status == item)">@item</option> }</select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Payment</label>
+            <select name="PaymentStatus" class="form-select"><option value="">All payments</option>@foreach (var item in Enum.GetValues<PaymentStatus>()) { <option value="@item" selected="@(filter.PaymentStatus == item)">@item</option> }</select>
+        </div>
+        <div class="col-md-1 d-flex gap-2">
+            <button class="btn btn-primary">Filter</button>
+        </div>
+    </div>
+    <div class="mt-2">
+        <a asp-action="Sales" asp-route-companyContextId="@companyContextId" class="btn btn-sm btn-outline-secondary">Clear</a>
+        <a asp-action="Sales" asp-route-companyContextId="@companyContextId" asp-route-From="@DateTime.Today.AddDays(-6).ToString("yyyy-MM-dd")" asp-route-To="@DateTime.Today.ToString("yyyy-MM-dd")" class="btn btn-sm btn-outline-secondary">Last 7 days</a>
+        <a asp-action="Sales" asp-route-companyContextId="@companyContextId" asp-route-From="@DateTime.Today.AddMonths(-1).ToString("yyyy-MM-dd")" asp-route-To="@DateTime.Today.ToString("yyyy-MM-dd")" class="btn btn-sm btn-outline-secondary">Last 30 days</a>
+    </div>
+</form>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-6 col-xl-3">
+        <div class="card medical-stat-card"><div class="card-body"><div class="d-flex justify-content-between"><div><h5 class="mb-1">Sales</h5><h3 class="mb-0">@Model.Summary.SalesCount</h3></div><span class="avatar rounded bg-label-primary"><i class="ti ti-shopping-cart ti-md"></i></span></div><div class="mt-2 text-muted small">@Model.Summary.ItemsQuantity.ToString("N0") item(s)</div></div></div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="card medical-stat-card"><div class="card-body"><div class="d-flex justify-content-between"><div><h5 class="mb-1">Revenue</h5><h3 class="mb-0 text-success">@Model.Summary.Revenue.ToString("N2")</h3></div><span class="avatar rounded bg-label-success"><i class="ti ti-currency-dollar ti-md"></i></span></div><div class="mt-2 text-muted small">Avg @Model.Summary.AverageSaleValue.ToString("N2") / sale</div></div></div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="card medical-stat-card"><div class="card-body"><div class="d-flex justify-content-between"><div><h5 class="mb-1">Gross Profit</h5><h3 class="mb-0">@Model.Summary.GrossProfit.ToString("N2")</h3></div><span class="avatar rounded bg-label-info"><i class="ti ti-chart-pie ti-md"></i></span></div><div class="mt-2 text-muted small">@Model.Summary.MarginPercent.ToString("N1")% margin</div></div></div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="card medical-stat-card"><div class="card-body"><div class="d-flex justify-content-between"><div><h5 class="mb-1">Collected / Due</h5><h3 class="mb-0">@Model.Summary.Paid.ToString("N2")</h3></div><span class="avatar rounded bg-label-warning"><i class="ti ti-wallet ti-md"></i></span></div><div class="mt-2 text-muted small text-danger">@Model.Summary.Due.ToString("N2") outstanding</div></div></div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-8">
+        <div class="card h-100">
+            <div class="card-header"><h5 class="mb-0">Daily Revenue</h5></div>
+            <div class="card-body"><canvas id="report-trend-chart" height="120"></canvas></div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-header"><h5 class="mb-0">Payment Methods</h5></div>
+            <div class="card-body"><canvas id="report-payment-chart" height="120"></canvas></div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header"><h5 class="mb-0">Top Products</h5></div>
+            <div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead><tr><th>Product</th><th class="text-end">Qty</th><th class="text-end">Revenue</th></tr></thead><tbody>
+                @if (Model.TopProducts.Count == 0) { <tr><td colspan="3" class="text-center py-4">No data for this period.</td></tr> }
+                @foreach (var product in Model.TopProducts) { <tr><td>@product.ProductName</td><td class="text-end">@product.Quantity.ToString("N2")</td><td class="text-end">@product.Revenue.ToString("N2")</td></tr> }
+            </tbody></table></div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header"><h5 class="mb-0">Top Customers</h5></div>
+            <div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead><tr><th>Customer</th><th class="text-end">Sales</th><th class="text-end">Revenue</th></tr></thead><tbody>
+                @if (Model.TopCustomers.Count == 0) { <tr><td colspan="3" class="text-center py-4">No data for this period.</td></tr> }
+                @foreach (var customer in Model.TopCustomers) { <tr><td>@customer.CustomerName</td><td class="text-end">@customer.SalesCount</td><td class="text-end">@customer.Revenue.ToString("N2")</td></tr> }
+            </tbody></table></div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header"><h5 class="mb-0">Sale Details (@Model.Sales.TotalCount)</h5></div>
+    <div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead><tr><th>Invoice</th><th>Customer</th><th>Date</th><th>Status</th><th>Payment</th><th class="text-end">Total</th><th class="text-end">Due</th></tr></thead><tbody>
+        @if (Model.Sales.Items.Count == 0) { <tr><td colspan="7" class="text-center py-4">No sales match the selected filters.</td></tr> }
+        @foreach (var item in Model.Sales.Items) { <tr><td><a asp-controller="Sales" asp-action="Details" asp-route-id="@item.Id" asp-route-companyContextId="@companyContextId" class="fw-semibold">@item.InvoiceNumber</a></td><td>@(item.CustomerName ?? "Walk-in customer")</td><td>@item.SaleDate.ToString("yyyy-MM-dd HH:mm")</td><td><span class="badge bg-@(item.Status switch { SaleStatus.Confirmed => "success", SaleStatus.Cancelled => "danger", SaleStatus.Held => "warning", _ => "secondary" })">@item.Status</span></td><td><span class="badge bg-@(item.PaymentStatus switch { PaymentStatus.Paid => "success", PaymentStatus.PartiallyPaid => "warning", PaymentStatus.Unpaid => "secondary", _ => "info" })">@item.PaymentStatus</span></td><td class="text-end">@item.GrandTotal.ToString("N2")</td><td class="text-end">@((item.GrandTotal - item.PaidAmount).ToString("N2"))</td></tr> }
+    </tbody></table></div>
+    @if (totalPages > 1)
+    {
+        <div class="card-footer">
+            <nav><ul class="pagination mb-0">@for (var p = 1; p <= totalPages; p++) { <li class="page-item @(p == Model.Sales.Page ? "active" : "")"><a class="page-link" asp-action="Sales" asp-route-page="@p" asp-route-pageSize="@Model.Sales.PageSize" asp-route-From="@filter.From?.ToString("yyyy-MM-dd")" asp-route-To="@filter.To?.ToString("yyyy-MM-dd")" asp-route-Search="@filter.Search" asp-route-Status="@filter.Status" asp-route-PaymentStatus="@filter.PaymentStatus" asp-route-companyContextId="@companyContextId">@p</a></li> }</ul></nav>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script src="~/assets/vendor/libs/chartjs/chartjs.js"></script>
+    <script>
+        (() => {
+            const colors = {
+                primary: 'rgba(115, 103, 240, 1)',
+                primarySoft: 'rgba(115, 103, 240, 0.15)',
+                grid: 'rgba(75, 70, 92, 0.08)'
+            };
+            const palette = ['rgba(115, 103, 240, 1)', 'rgba(40, 199, 111, 1)', 'rgba(0, 207, 232, 1)', 'rgba(255, 159, 67, 1)', 'rgba(234, 84, 85, 1)'];
+
+            const trendEl = document.getElementById('report-trend-chart');
+            if (trendEl) {
+                new Chart(trendEl, {
+                    type: 'bar',
+                    data: {
+                        labels: @Json(days),
+                        datasets: [{
+                            label: 'Revenue',
+                            data: @Json(revenue),
+                            backgroundColor: colors.primarySoft,
+                            borderColor: colors.primary,
+                            borderWidth: 2,
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { beginAtZero: true, grid: { color: colors.grid }, ticks: { callback: v => Number(v).toLocaleString() } },
+                            x: { grid: { display: false } }
+                        }
+                    }
+                });
+            }
+
+            const paymentEl = document.getElementById('report-payment-chart');
+            if (paymentEl) {
+                new Chart(paymentEl, {
+                    type: 'doughnut',
+                    data: {
+                        labels: @Json(paymentNames),
+                        datasets: [{
+                            data: @Json(paymentAmounts),
+                            backgroundColor: palette,
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '68%',
+                        plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 16 } } }
+                    }
+                });
+            }
+        })();
+    </script>
+}

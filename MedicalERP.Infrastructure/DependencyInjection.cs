@@ -110,6 +110,8 @@ public static class DependencyInjection
         services.AddScoped<ICustomerService, CustomerService>();
         services.AddScoped<ISaleRepository, SaleRepository>();
         services.AddScoped<ISaleService, SaleService>();
+        services.AddScoped<IReportRepository, ReportRepository>();
+        services.AddScoped<IReportService, ReportService>();
         services.AddScoped<ISaleReturnRepository, SaleReturnRepository>();
         services.AddScoped<ISaleReturnService, SaleReturnService>();
         return services;
