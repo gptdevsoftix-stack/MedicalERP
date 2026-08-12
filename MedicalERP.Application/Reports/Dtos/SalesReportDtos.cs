@@ -14,8 +14,11 @@ public sealed class SalesSummaryDto
     public decimal Due { get; set; }
     public decimal Cost { get; set; }
     public decimal ItemsQuantity { get; set; }
+    public decimal Expenses { get; set; }
     public decimal GrossProfit => Revenue - Cost;
     public decimal MarginPercent => Revenue == 0 ? 0 : GrossProfit / Revenue * 100;
+    public decimal NetProfit => Revenue - Cost - Discount - Tax - Expenses;
+    public decimal NetMarginPercent => Revenue == 0 ? 0 : NetProfit / Revenue * 100;
     public decimal AverageSaleValue => SalesCount == 0 ? 0 : Revenue / SalesCount;
 }
 

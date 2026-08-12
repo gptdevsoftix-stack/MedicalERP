@@ -112,7 +112,8 @@ public sealed class ReportService(
         Paid = data.Paid,
         Due = data.Due,
         Cost = data.Cost,
-        ItemsQuantity = data.ItemsQuantity
+        ItemsQuantity = data.ItemsQuantity,
+        Expenses = data.Expenses
     };
 
     private static SalesByDayDto MapByDay(SalesByDayData data) => new()

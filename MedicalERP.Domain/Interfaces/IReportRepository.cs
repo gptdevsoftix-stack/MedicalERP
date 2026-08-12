@@ -10,7 +10,8 @@ public sealed record SalesSummaryData(
     decimal Paid,
     decimal Due,
     decimal Cost,
-    decimal ItemsQuantity);
+    decimal ItemsQuantity,
+    decimal Expenses);
 
 public sealed record SalesByDayData(
     DateTimeOffset Day,

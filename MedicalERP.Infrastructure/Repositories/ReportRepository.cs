@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 using MedicalERP.Domain.Enums;
 using MedicalERP.Domain.Interfaces;
+using MedicalERP.Domain.Purchases;
 using MedicalERP.Domain.Sales;
 using MedicalERP.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -29,7 +30,29 @@ public sealed class ReportRepository(ApplicationDbContext context) : IReportRepo
             .Where(x => x.Sale.Status != SaleStatus.Draft && x.Sale.Status != SaleStatus.Cancelled);
 
         var itemsQuantity = await items.SumAsync(x => x.Quantity, cancellationToken);
-        var cost = await items.SumAsync(x => x.CostPrice * x.BaseQuantity, cancellationToken);
+        var itemRows = await items
+            .Select(x => new { x.ProductId, x.BaseQuantity, x.CostPrice })
+            .ToListAsync(cancellationToken);
+
+        var purchaseCosts = await context.PurchaseOrderItems.AsNoTracking()
+            .Where(x => x.CompanyId == companyId && x.StoreId == storeId)
+            .Where(x => itemRows.Select(r => r.ProductId).Contains(x.ProductId))
+            .GroupBy(x => x.ProductId)
+            .Select(g => new
+            {
+                ProductId = g.Key,
+                UnitCost = g.OrderByDescending(x => x.CreatedAt)
+                    .Select(x => x.ConversionFactor == 0 ? x.UnitPrice : x.UnitPrice / x.ConversionFactor)
+                    .FirstOrDefault()
+            })
+            .ToDictionaryAsync(x => x.ProductId, x => x.UnitCost, cancellationToken);
+
+        var cost = itemRows.Sum(x => x.CostPrice > 0
+            ? x.CostPrice * x.BaseQuantity
+            : purchaseCosts.GetValueOrDefault(x.ProductId) * x.BaseQuantity);
+
+        var expenses = await ApplyDateRange(context.Expenses.Where(x => x.CompanyId == companyId && x.StoreId == storeId), from, to, x => x.ExpenseDate)
+            .SumAsync(x => x.Amount, cancellationToken);
 
         return new SalesSummaryData(
             count,
@@ -39,7 +62,8 @@ public sealed class ReportRepository(ApplicationDbContext context) : IReportRepo
             totals?.Paid ?? 0,
             totals?.Due ?? 0,
             cost,
-            itemsQuantity);
+            itemsQuantity,
+            expenses);
     }
 
     public async Task<IReadOnlyList<SalesByDayData>> GetSalesByDayAsync(Guid companyId, Guid storeId, DateTimeOffset from, DateTimeOffset to, CancellationToken cancellationToken = default)
