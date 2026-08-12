@@ -1,4 +1,5 @@
 using MedicalERP.Domain.Catalog;
+using MedicalERP.Domain.Common;
 using MedicalERP.Domain.Companies;
 using MedicalERP.Domain.Enums;
 using MedicalERP.Domain.Interfaces;
@@ -40,6 +41,11 @@ public sealed class SaleRepository(ApplicationDbContext context) : ISaleReposito
         IQueryable<Sale> query = Query(companyId, storeId);
         if (!tracking) query = query.AsNoTracking();
         return query.SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
+    }
+
+    public Task<bool> IsPaidAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return context.Sales.AnyAsync(x => x.Id == id && x.PaymentStatus == PaymentStatus.Paid, cancellationToken);
     }
 
     public Task<bool> InvoiceNumberExistsAsync(Guid companyId, Guid storeId, string invoiceNumber, Guid? excludedId, CancellationToken cancellationToken = default)
@@ -153,9 +159,21 @@ public sealed class SaleRepository(ApplicationDbContext context) : ISaleReposito
 
     public async Task AddStockTransactionAsync(StockTransaction transaction, CancellationToken cancellationToken = default) => await context.StockTransactions.AddAsync(transaction, cancellationToken);
 
+    public async Task AddSalePaymentAsync(SalePayment payment, CancellationToken cancellationToken = default) => await context.SalePayments.AddAsync(payment, cancellationToken);
+
     public async Task AddAsync(Sale sale, CancellationToken cancellationToken = default) => await context.Sales.AddAsync(sale, cancellationToken);
 
-    public Task SaveChangesAsync(CancellationToken cancellationToken = default) => context.SaveChangesAsync(cancellationToken);
+    public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await context.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            throw new ConcurrencyConflictException("The record was modified by another user. Please reload and try again.", ex);
+        }
+    }
 
     private static IQueryable<Sale> ApplyFilters(IQueryable<Sale> query, string? search, int? status, int? paymentStatus, DateTimeOffset? from, DateTimeOffset? to)
     {

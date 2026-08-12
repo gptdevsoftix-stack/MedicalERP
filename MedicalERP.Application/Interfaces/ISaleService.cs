@@ -8,6 +8,7 @@ public interface ISaleService
     Task<PagedResult<SaleListDto>> GetAsync(SaleFilterDto filter, CancellationToken cancellationToken = default);
     Task<SaleFormDto?> GetDetailsAsync(Guid id, CancellationToken cancellationToken = default);
     Task<Guid> CreateAsync(SaleFormDto request, CancellationToken cancellationToken = default);
+    Task<Guid> MarkAsPaidAsync(Guid id, CancellationToken cancellationToken = default);
     Task<Guid> EnsureOpenRegisterSessionAsync(CancellationToken cancellationToken = default);
     Task<IReadOnlyList<SaleLookupDto>> GetCustomersAsync(CancellationToken cancellationToken = default);
     Task<IReadOnlyList<SaleProductLookupDto>> GetProductsAsync(CancellationToken cancellationToken = default);

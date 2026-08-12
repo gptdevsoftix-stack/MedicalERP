@@ -53,6 +53,26 @@ public sealed class SalesController(ISaleService service) : Controller
         return model is null ? NotFound() : View(model);
     }
 
+    [HttpPost, HasPermission(Permissions.Sales.Create), ValidateAntiForgeryToken]
+    public async Task<IActionResult> MarkPaid(Guid id, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await service.MarkAsPaidAsync(id, cancellationToken);
+            TempData["SuccessMessage"] = "Sale marked as paid.";
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or KeyNotFoundException or UnauthorizedAccessException)
+        {
+            TempData["ErrorMessage"] = ex.Message;
+        }
+        catch (MedicalERP.Domain.Common.ConcurrencyConflictException)
+        {
+            TempData["ErrorMessage"] = "This sale was already marked as paid or modified by another user.";
+        }
+
+        return RedirectToAction(nameof(Details), new { id, companyContextId = GetCompanyContextId() });
+    }
+
     [HttpGet, HasPermission(Permissions.Sales.View)]
     public async Task<IActionResult> Receipt(Guid id, CancellationToken cancellationToken)
     {

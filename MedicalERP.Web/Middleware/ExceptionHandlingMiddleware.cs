@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using MedicalERP.Domain.Common;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,6 +19,7 @@ public sealed class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Ex
                 KeyNotFoundException => (StatusCodes.Status404NotFound, "Not Found"),
                 ValidationException => (StatusCodes.Status400BadRequest, "Validation Failed"),
                 DbUpdateConcurrencyException => (StatusCodes.Status409Conflict, "Concurrency Conflict"),
+                ConcurrencyConflictException => (StatusCodes.Status409Conflict, "Concurrency Conflict"),
                 InvalidOperationException => (StatusCodes.Status400BadRequest, "Invalid Operation"),
                 _ => (StatusCodes.Status500InternalServerError, "Server Error")
             };

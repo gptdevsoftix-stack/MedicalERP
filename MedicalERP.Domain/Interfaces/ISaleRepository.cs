@@ -12,6 +12,7 @@ public interface ISaleRepository
     Task<int> CountAsync(Guid companyId, Guid storeId, string? search, int? status, int? paymentStatus, DateTimeOffset? from, DateTimeOffset? to, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<Sale>> GetAsync(Guid companyId, Guid storeId, string? search, int? status, int? paymentStatus, DateTimeOffset? from, DateTimeOffset? to, int skip, int take, CancellationToken cancellationToken = default);
     Task<Sale?> GetByIdAsync(Guid id, Guid companyId, Guid storeId, bool tracking, CancellationToken cancellationToken = default);
+    Task<bool> IsPaidAsync(Guid id, CancellationToken cancellationToken = default);
     Task<bool> InvoiceNumberExistsAsync(Guid companyId, Guid storeId, string invoiceNumber, Guid? excludedId, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<Customer>> GetCustomersAsync(Guid companyId, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<SaleProductLookupData>> GetProductsAsync(Guid companyId, Guid storeId, CancellationToken cancellationToken = default);
@@ -28,6 +29,7 @@ public interface ISaleRepository
     Task<InventoryStock?> GetInventoryStockAsync(Guid companyId, Guid storeId, Guid productId, Guid? warehouseId, Guid? productBatchId, CancellationToken cancellationToken = default);
     Task AddInventoryStockAsync(InventoryStock stock, CancellationToken cancellationToken = default);
     Task AddStockTransactionAsync(StockTransaction transaction, CancellationToken cancellationToken = default);
+    Task AddSalePaymentAsync(SalePayment payment, CancellationToken cancellationToken = default);
     Task AddAsync(Sale sale, CancellationToken cancellationToken = default);
     Task SaveChangesAsync(CancellationToken cancellationToken = default);
 }

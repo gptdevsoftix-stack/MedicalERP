@@ -2,6 +2,7 @@ using MedicalERP.Application.Abstractions.Security;
 using MedicalERP.Application.Common;
 using MedicalERP.Application.Interfaces;
 using MedicalERP.Application.Sales.Dtos;
+using MedicalERP.Domain.Common;
 using MedicalERP.Domain.Enums;
 using MedicalERP.Domain.Interfaces;
 using MedicalERP.Domain.Inventory;
@@ -43,6 +44,56 @@ public sealed class SaleService(
     {
         var sale = await repository.GetByIdAsync(id, RequireCompany(), await RequireStoreAsync(cancellationToken), false, cancellationToken);
         return sale is null ? null : MapForm(sale);
+    }
+
+    public async Task<Guid> MarkAsPaidAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var companyId = RequireCompany();
+        var storeId = await RequireStoreAsync(cancellationToken);
+        var sale = await repository.GetByIdAsync(id, companyId, storeId, true, cancellationToken)
+            ?? throw new KeyNotFoundException("Sale not found.");
+
+        if (sale.Status == SaleStatus.Cancelled)
+            throw new InvalidOperationException("A cancelled sale cannot be marked as paid.");
+
+        if (sale.PaymentStatus == PaymentStatus.Paid)
+            return sale.Id;
+
+        var remaining = sale.GrandTotal - sale.PaidAmount;
+        if (remaining > 0)
+        {
+            var paymentMethods = await EnsureStandardPaymentMethodsAsync(companyId, cancellationToken);
+            var cash = paymentMethods.FirstOrDefault(x => string.Equals(x.Code, "CASH", StringComparison.OrdinalIgnoreCase))
+                ?? paymentMethods.First();
+
+            var payment = new SalePayment
+            {
+                Id = Guid.NewGuid(), CompanyId = sale.CompanyId, StoreId = sale.StoreId,
+                SaleId = sale.Id, PaymentMethodId = cash.Id,
+                Amount = remaining, PaidAt = DateTimeOffset.Now
+            };
+
+            await repository.AddSalePaymentAsync(payment, cancellationToken);
+        }
+
+        sale.PaidAmount = sale.GrandTotal;
+        sale.ChangeAmount = 0;
+        sale.DueAmount = 0;
+        sale.PaymentStatus = PaymentStatus.Paid;
+
+        try
+        {
+            await repository.SaveChangesAsync(cancellationToken);
+        }
+        catch (ConcurrencyConflictException)
+        {
+            if (await repository.IsPaidAsync(id, cancellationToken))
+                return sale.Id;
+
+            throw new ConcurrencyConflictException("The sale was modified by another user. Please reload and try again.");
+        }
+
+        return sale.Id;
     }
 
     public async Task<Guid> CreateAsync(SaleFormDto request, CancellationToken cancellationToken = default)
