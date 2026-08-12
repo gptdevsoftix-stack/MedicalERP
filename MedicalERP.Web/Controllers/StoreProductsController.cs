@@ -1,3 +1,4 @@
+using MedicalERP.Application.Abstractions.Security;
 using MedicalERP.Application.Common;
 using MedicalERP.Application.Interfaces;
 using MedicalERP.Application.Permissions;
@@ -15,15 +16,18 @@ public sealed class StoreProductsController : Controller
     private readonly IStoreProductService _service;
     private readonly IProductService _productService;
     private readonly IStoreService _storeService;
+    private readonly IStoreContext _storeContext;
 
     public StoreProductsController(
         IStoreProductService service,
         IProductService productService,
-        IStoreService storeService)
+        IStoreService storeService,
+        IStoreContext storeContext)
     {
         _service = service;
         _productService = productService;
         _storeService = storeService;
+        _storeContext = storeContext;
     }
 
     [HttpGet]
@@ -34,15 +38,29 @@ public sealed class StoreProductsController : Controller
         string? search,
         CancellationToken cancellationToken)
     {
-        ViewBag.StoreId = storeId;
+        var effectiveStoreId = Request.Query.ContainsKey("storeId") ? storeId : _storeContext.SelectedStoreId;
+
+        ViewBag.StoreId = effectiveStoreId;
         ViewBag.ProductId = productId;
         ViewBag.Search = search;
         ViewBag.CompanyContextId = GetCompanyContextId();
 
-        await LoadDropdownsAsync(storeId, productId, cancellationToken);
+        if (effectiveStoreId.HasValue)
+        {
+            try
+            {
+                ViewBag.SelectedStoreName = (await _storeService.GetByIdAsync(effectiveStoreId.Value, cancellationToken)).Name;
+            }
+            catch
+            {
+                ViewBag.SelectedStoreName = null;
+            }
+        }
+
+        await LoadDropdownsAsync(effectiveStoreId, productId, cancellationToken);
 
         var records = await _service.GetAsync(
-            storeId,
+            effectiveStoreId,
             productId,
             search,
             cancellationToken);
@@ -57,9 +75,10 @@ public sealed class StoreProductsController : Controller
         Guid? productId,
         CancellationToken cancellationToken)
     {
+        var effectiveStoreId = storeId ?? _storeContext.SelectedStoreId;
         var model = new StoreProductFormDto
         {
-            StoreId = storeId ?? Guid.Empty,
+            StoreId = effectiveStoreId ?? Guid.Empty,
             ProductId = productId ?? Guid.Empty,
             IsAvailableForSale = true,
             IsActive = true

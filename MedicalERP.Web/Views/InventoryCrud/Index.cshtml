@@ -16,8 +16,11 @@
         || User.HasClaim(PermissionClaimTypes.Permission, Permissions.Inventory.Dispose);
     var isInventoryStocks = string.Equals(typeKey, "InventoryStocks", StringComparison.OrdinalIgnoreCase);
     var isStockTransactions = string.Equals(typeKey, "StockTransactions", StringComparison.OrdinalIgnoreCase);
+    var selectedStoreName = ViewBag.SelectedStoreName as string;
     var hiddenFields = isInventoryStocks
-        ? new HashSet<string>(new[] { "StoreId", "WarehouseId", "ProductBatchId" }, StringComparer.OrdinalIgnoreCase)
+        ? new HashSet<string>(selectedStoreName is null
+            ? new[] { "WarehouseId", "ProductBatchId" }
+            : new[] { "StoreId", "WarehouseId", "ProductBatchId" }, StringComparer.OrdinalIgnoreCase)
         : isStockTransactions
             ? new HashSet<string>(new[] { "WarehouseId", "ProductBatchId" }, StringComparer.OrdinalIgnoreCase)
             : new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -56,7 +59,7 @@
             return "-";
         }
 
-        if (isStockTransactions && field == "StoreId")
+        if ((isInventoryStocks || isStockTransactions) && field == "StoreId")
         {
             if (value is Guid storeId && storeNames.TryGetValue(storeId, out var storeName))
             {
@@ -111,6 +114,14 @@
 @if (TempData["SuccessMessage"] is string message)
 {
     <div class="alert alert-success">@message</div>
+}
+
+@if (selectedStoreName is not null)
+{
+    <div class="alert alert-info py-2 px-3 d-flex align-items-center gap-2">
+        <i class="ti ti-building-store"></i>
+        <span>Showing inventory for store: <strong>@selectedStoreName</strong></span>
+    </div>
 }
 
 @if (isInventoryStocks)

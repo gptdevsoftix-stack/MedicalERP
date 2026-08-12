@@ -6,6 +6,7 @@
     var productId = ViewBag.ProductId as Guid?;
     var search = ViewBag.Search as string;
     var companyContextId = ViewBag.CompanyContextId as string;
+    var selectedStoreName = ViewBag.SelectedStoreName as string;
 }
 
 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -22,6 +23,14 @@
 @if (TempData["SuccessMessage"] is not null)
 {
     <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+
+@if (selectedStoreName is not null)
+{
+    <div class="alert alert-info py-2 px-3 d-flex align-items-center gap-2">
+        <i class="ti ti-building-store"></i>
+        <span>Showing store products for store: <strong>@selectedStoreName</strong></span>
+    </div>
 }
 
 <form method="get" class="row g-2 mb-3">

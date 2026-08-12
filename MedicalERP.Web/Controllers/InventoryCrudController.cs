@@ -49,11 +49,13 @@ public sealed class InventoryCrudController : Controller
 
     private readonly ApplicationDbContext _db;
     private readonly ICompanyContext _companyContext;
+     private readonly IStoreContext _storeContext;
 
-    public InventoryCrudController(ApplicationDbContext db, ICompanyContext companyContext)
+    public InventoryCrudController(ApplicationDbContext db, ICompanyContext companyContext, IStoreContext storeContext)
     {
         _db = db;
         _companyContext = companyContext;
+        _storeContext = storeContext;
     }
 
     [HttpGet]
@@ -87,17 +89,31 @@ public sealed class InventoryCrudController : Controller
                 .ToDictionaryAsync(product => product.Id, product => product.Name, cancellationToken);
         }
 
-        if (isStockTransactions)
+        if (isInventoryStocks || isStockTransactions)
         {
             ViewBag.StoreNames = await _db.Stores.AsNoTracking()
                 .Where(store => store.CompanyId == companyId)
                 .ToDictionaryAsync(store => store.Id, store => store.Name, cancellationToken);
         }
 
+        var selectedStoreId = _storeContext.SelectedStoreId;
+        if (selectedStoreId.HasValue)
+        {
+            ViewBag.SelectedStoreName = await _db.Stores.AsNoTracking()
+                .Where(store => store.CompanyId == companyId && store.Id == selectedStoreId.Value)
+                .Select(store => store.Name)
+                .FirstOrDefaultAsync(cancellationToken);
+        }
+
         var records = await Query(definition.EntityType).ToListAsync(cancellationToken);
         var query = records
             .OfType<CompanyEntity>()
             .Where(x => x.CompanyId == companyId);
+
+        if (selectedStoreId.HasValue)
+        {
+            query = query.Where(x => x is not StoreEntity store || store.StoreId == selectedStoreId.Value);
+        }
 
         if (isInventoryStocks && categoryId.HasValue)
         {

@@ -4,6 +4,7 @@ using MedicalERP.Application.Permissions;
 using MedicalERP.Application.Stores.Dtos;
 using MedicalERP.Web.Authorization;
 using MedicalERP.Web.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
@@ -17,6 +18,14 @@ public sealed class StoresController(IStoreService service, ICompanyService comp
     {
         ViewBag.Query = query;
         return View(await service.GetAsync(query, ct));
+    }
+
+    [Authorize]
+    [HttpGet("/Stores/GetAllStores")]
+    public async Task<IActionResult> GetAllStores(CancellationToken ct)
+    {
+        var result = await service.GetAsync(new QueryParameters { PageSize = 500 }, ct);
+        return Ok(result.Items.Select(x => new { storeId = x.Id, storeName = x.Name }));
     }
 
     [HttpGet("/Stores/Create")]

@@ -304,6 +304,13 @@
                         </div>
                         <ul class="navbar-nav flex-row align-items-center ms-auto">
                             <li class="nav-item me-3">
+                                <select id="storeDropdown"
+                                        class="form-select form-select-sm"
+                                        aria-label="Select store">
+                                    <option value="">Select Store</option>
+                                </select>
+                            </li>
+                            <li class="nav-item me-3">
                                 <select id="theme-selector"
                                         class="form-select form-select-sm"
                                         aria-label="Select theme">
@@ -359,6 +366,7 @@
     <script src="~/assets/vendor/js/menu.js"></script>
     <script src="~/assets/js/main.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/CustomJs/StoreDropdown.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
