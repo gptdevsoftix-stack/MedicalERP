@@ -5,6 +5,6 @@
 @if (Model.Companies.Any()) { <div class="col-md-6"><label class="form-label">Company Context</label><select class="form-select" asp-for="CompanyContextId" asp-items="Model.Companies"><option value="">Select company</option></select></div> }
 <div class="col-md-6"><label class="form-label" asp-for="Name"></label><input class="form-control" asp-for="Name" readonly="@(isEdit)" /></div>
 <div class="col-12"><label class="form-label" asp-for="Description"></label><input class="form-control" asp-for="Description" /></div>
-<div class="col-12"><label class="form-label">Permissions</label><select class="form-select" asp-for="SelectedPermissions" asp-items="Model.Permissions" multiple size="14"></select></div>
+<partial name="_PermissionGrid" model="Model" />
 @if(isEdit){<div class="col-12"><div class="form-check"><input class="form-check-input" asp-for="IsActive" /><label class="form-check-label" asp-for="IsActive"></label></div></div>}
 <div class="col-12 d-flex gap-2"><button class="btn btn-primary">Save</button><a class="btn btn-label-secondary" asp-action="Index">Cancel</a></div></div></form>

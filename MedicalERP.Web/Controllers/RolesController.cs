@@ -47,7 +47,7 @@ public sealed class RolesController(IIdentityService identity, ICompanyService c
 
     private async Task<RoleFormViewModel> Populate(RoleFormViewModel model, CancellationToken ct)
     {
-        model.Permissions = Permissions.All.Select(x => new SelectListItem(x, x, model.SelectedPermissions.Contains(x))).ToArray();
+        model.Permissions = Permissions.All.Select(x => new SelectListItem(x, x)).ToArray();
         try { model.Companies = (await companies.GetAsync(new QueryParameters { PageSize = 500 }, ct)).Items.Select(x => new SelectListItem(x.Name, x.Id.ToString(), model.CompanyContextId == x.Id)).ToArray(); } catch { model.Companies = []; }
         return model;
     }
