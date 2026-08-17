@@ -164,14 +164,17 @@
                         <th>Category</th>
                     }
                     <th>Active</th>
-                    <th class="text-end">Actions</th>
+                    @if (!isInventoryStocks)
+                    {
+                        <th class="text-end">Actions</th>
+                    }
                 </tr>
             </thead>
             <tbody>
                 @if (Model.Count == 0)
                 {
                     <tr>
-                        <td colspan="@(displayFields.Take(7).Count() + (isInventoryStocks ? 1 : 0) + 2)" class="text-center text-muted py-4">No records found.</td>
+                        <td colspan="@(displayFields.Take(7).Count() + 2)" class="text-center text-muted py-4">No records found.</td>
                     </tr>
                 }
                 else
@@ -191,27 +194,30 @@
                             <td>
                                 <span class="badge bg-label-@(entity.IsActive ? "success" : "secondary")">@(entity.IsActive ? "Active" : "Inactive")</span>
                             </td>
-                            <td class="text-end">
-                                @if (canWrite)
-                                {
-                                    <a asp-action="Edit"
-                                       asp-route-type="@typeKey"
-                                       asp-route-id="@entity.Id"
-                                       asp-route-companyContextId="@companyContextId"
-                                       class="btn btn-sm btn-icon btn-label-secondary"
-                                       title="Edit">
-                                        <i class="ti ti-pencil"></i>
-                                    </a>
-                                    <a asp-action="Delete"
-                                       asp-route-type="@typeKey"
-                                       asp-route-id="@entity.Id"
-                                       asp-route-companyContextId="@companyContextId"
-                                       class="btn btn-sm btn-icon btn-label-danger"
-                                       title="Delete">
-                                        <i class="ti ti-trash"></i>
-                                    </a>
-                                }
-                            </td>
+                            @if (!isInventoryStocks)
+                            {
+                                <td class="text-end">
+                                    @if (canWrite)
+                                    {
+                                        <a asp-action="Edit"
+                                           asp-route-type="@typeKey"
+                                           asp-route-id="@entity.Id"
+                                           asp-route-companyContextId="@companyContextId"
+                                           class="btn btn-sm btn-icon btn-label-secondary"
+                                           title="Edit">
+                                            <i class="ti ti-pencil"></i>
+                                        </a>
+                                        <a asp-action="Delete"
+                                           asp-route-type="@typeKey"
+                                           asp-route-id="@entity.Id"
+                                           asp-route-companyContextId="@companyContextId"
+                                           class="btn btn-sm btn-icon btn-label-danger"
+                                           title="Delete">
+                                            <i class="ti ti-trash"></i>
+                                        </a>
+                                    }
+                                </td>
+                            }
                         </tr>
                     }
                 }
