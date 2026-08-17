@@ -7,11 +7,12 @@ namespace MedicalERP.Infrastructure.Identity;
 
 public static class IdentitySeeder
 {
-    public static readonly string[] Roles = ["PlatformSuperAdmin", "CompanyOwner", "CompanyAdmin", "RegionalManager", "StoreManager", "Pharmacist", "Cashier", "InventoryManager", "PurchaseManager", "Accountant", "Auditor"];
+    public static readonly string[] Roles = ["PlatformSuperAdmin", "Admin", "CompanyOwner", "CompanyAdmin", "RegionalManager", "StoreManager", "Pharmacist", "Cashier", "InventoryManager", "PurchaseManager", "Accountant", "Auditor"];
 
     private static readonly IReadOnlyDictionary<string, string[]> RolePermissions = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase)
     {
         ["PlatformSuperAdmin"] = Permissions.All,
+        ["Admin"] = Permissions.All,
         ["CompanyOwner"] = Permissions.All,
         ["CompanyAdmin"] = Permissions.All,
         ["RegionalManager"] =

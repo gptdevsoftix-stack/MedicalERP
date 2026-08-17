@@ -1,5 +1,6 @@
 ﻿using MedicalERP.Infrastructure.Identity;
 using MedicalERP.Infrastructure.Persistence;
+using MedicalERP.Infrastructure.Seeding;
 using MedicalERP.Web.Extensions;
 using MedicalERP.Web.Middleware;
 using Microsoft.AspNetCore.DataProtection;
@@ -53,6 +54,8 @@ using (var scope = app.Services.CreateScope())
             scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>(),
             scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>(),
             scope.ServiceProvider.GetRequiredService<IConfiguration>());
+
+        await DemoSeeder.SeedAsync(db);
     }
 }
 
