@@ -16,15 +16,12 @@
     },
 
     showLoader: function () {
-        $('#render-body-content').fadeOut('fast', function () {   // Hide main content
-            $('#content-loader').fadeIn('fast'); // Show loader
-
-        });
+        var el = document.getElementById('app-loader');
+        if (el) el.classList.add('active');
     },
     hideLoader: function () {
-        $('#content-loader').fadeOut('fast', function () {
-            $('#render-body-content').fadeIn('fast'); // Show main content
-        });
+        var el = document.getElementById('app-loader');
+        if (el) el.classList.remove('active');
     },
     selectStore() {
 
@@ -745,6 +742,7 @@
 
 $(document).ready(function () {
     common.init();
+    common.hideLoader();
 
     $.validator.setDefaults({
         highlight: function (element) {
@@ -763,9 +761,35 @@ $(document).ready(function () {
         }
     });
 });
+
 $(window).on('load', function () {
-    // Hide the content loader and show the main content when the page is ready
     common.hideLoader();
+});
+
+/* ── Auto-loader hooks ─────────────────────────────────── */
+
+$(document).on('click', 'a[href]', function (e) {
+    var $a = $(this);
+    var href = $a.attr('href') || '';
+    if (href.startsWith('javascript:') || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:') || $a.attr('target') === '_blank' || e.ctrlKey || e.shiftKey || e.metaKey) return;
+    if ($a.hasClass('nav-link') && $a.attr('data-bs-toggle')) return;
+    if ($a.closest('.dropdown-menu').length) return;
+    if ($a.hasClass('btn-close') || $a.attr('data-bs-dismiss')) return;
+    common.showLoader();
+});
+
+$(document).on('submit', 'form', function () {
+    common.showLoader();
+});
+
+var ajaxActive = 0;
+$(document).ajaxSend(function () {
+    ajaxActive++;
+    common.showLoader();
+});
+$(document).ajaxComplete(function () {
+    ajaxActive--;
+    if (ajaxActive <= 0) { ajaxActive = 0; common.hideLoader(); }
 });
 
 

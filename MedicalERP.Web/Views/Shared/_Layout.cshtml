@@ -80,6 +80,17 @@
     @await RenderSectionAsync("HeadStyles", required: false)
 </head>
 <body>
+    <div id="app-loader" class="app-loader">
+        <div class="app-loader-inner">
+            <div class="app-loader-spinner">
+                <div class="app-loader-dot"></div>
+                <div class="app-loader-dot"></div>
+                <div class="app-loader-dot"></div>
+                <div class="app-loader-dot"></div>
+            </div>
+            <div class="app-loader-text">Loading</div>
+        </div>
+    </div>
     <div class="layout-wrapper layout-content-navbar">
         <div class="layout-container">
             <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
