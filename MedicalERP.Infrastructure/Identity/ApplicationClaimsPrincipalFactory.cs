@@ -23,6 +23,14 @@ public sealed class ApplicationClaimsPrincipalFactory(
         if (user.CompanyId.HasValue)
         {
             identity.AddClaim(new Claim("company_id", user.CompanyId.Value.ToString()));
+            var companyName = await db.Companies.AsNoTracking()
+                .Where(c => c.Id == user.CompanyId.Value)
+                .Select(c => c.Name)
+                .FirstOrDefaultAsync();
+            if (!string.IsNullOrEmpty(companyName))
+            {
+                identity.AddClaim(new Claim("company_name", companyName));
+            }
         }
 
         var permissions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);

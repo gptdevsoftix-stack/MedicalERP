@@ -12,7 +12,7 @@ public static class SaleReceiptPdf
         QuestPDF.Settings.License = LicenseType.Community;
     }
 
-    public static byte[] Build(SaleFormDto model)
+    public static byte[] Build(SaleFormDto model, string companyName = "MEDICALERP PHARMACY")
     {
         var document = Document.Create(container =>
         {
@@ -28,8 +28,8 @@ public static class SaleReceiptPdf
                     col.Item().Column(header =>
                     {
                         header.Spacing(1);
-                        header.Item().AlignCenter().Text("MEDICALERP PHARMACY").FontSize(16).Bold();
-                        header.Item().AlignCenter().Text("Multi-company Medical ERP & POS").FontSize(8).FontColor(Colors.Grey.Darken1);
+                        header.Item().AlignCenter().Text(companyName.ToUpperInvariant()).FontSize(16).Bold();
+                        header.Item().AlignCenter().Text("Medical ERP & POS").FontSize(8).FontColor(Colors.Grey.Darken1);
                         header.Item().AlignCenter().Text($"Receipt / Invoice: {model.InvoiceNumber}").FontSize(10).SemiBold().FontColor(Colors.Blue.Darken2);
                     });
 

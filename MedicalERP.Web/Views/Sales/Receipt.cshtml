@@ -1,7 +1,9 @@
 @model MedicalERP.Application.Sales.Dtos.SaleFormDto
 @using MedicalERP.Domain.Enums
+@using System.Security.Claims
 @{
     ViewData["Title"] = $"Receipt - {Model.InvoiceNumber}";
+    var companyName = User.FindFirst("company_name")?.Value ?? "MEDICALERP";
 }
 <div class="d-flex justify-content-between align-items-center mb-3 d-print-none">
     <div><h2 class="mb-1">Receipt</h2><div class="text-muted">@Model.InvoiceNumber</div></div>
@@ -17,8 +19,8 @@
 <div class="d-flex justify-content-center">
     <div class="receipt" id="receipt">
         <div class="receipt-header">
-            <div class="receipt-brand">MEDICALERP</div>
-            <div class="receipt-subtitle">Multi-company Medical ERP &amp; POS</div>
+            <div class="receipt-brand">@companyName</div>
+            <div class="receipt-subtitle">Medical ERP &amp; POS</div>
             <div class="receipt-invoice">@Model.InvoiceNumber</div>
             <div class="receipt-date">@Model.SaleDate.ToString("yyyy-MM-dd HH:mm")</div>
         </div>

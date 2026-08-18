@@ -4,6 +4,7 @@
     var currentPath = Context.Request.Path.Value ?? "/";
     var companyContextId = Context.Request.Query["companyContextId"].FirstOrDefault();
     var userName = User.Identity?.IsAuthenticated == true ? User.Identity.Name : "Guest";
+    var companyName = User.FindFirst("company_name")?.Value;
     var userRoles = User.FindAll(ClaimTypes.Role).Select(r => r.Value).ToArray();
     var avatarUrl = $"https://api.dicebear.com/6.x/initials/svg?seed={Uri.EscapeDataString(userName ?? "MedicalERP")}";
     bool HasPermission(string permission) => User.HasClaim(PermissionClaimTypes.Permission, permission);
@@ -90,7 +91,16 @@
                                 <path fill-rule="evenodd" clip-rule="evenodd" d="M7.77 16.36L23.66 0H32V6.88C32 6.88 31.83 9.18 30.66 10.41L19.78 22H13.69L7.77 16.36Z" fill="#7367F0" />
                             </svg>
                         </span>
-                        <span class="app-brand-text demo menu-text fw-bold">MedicalERP</span>
+                        <span class="app-brand-text demo menu-text fw-bold">
+                            @if (!string.IsNullOrEmpty(companyName))
+                            {
+                                @companyName
+                            }
+                            else
+                            {
+                                @:MedicalERP
+                            }
+                        </span>
                     </a>
                     <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">
                         <i class="ti menu-toggle-icon d-none d-xl-block ti-sm align-middle"></i>

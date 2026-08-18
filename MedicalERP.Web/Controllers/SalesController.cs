@@ -85,7 +85,8 @@ public sealed class SalesController(ISaleService service) : Controller
     {
         var model = await service.GetDetailsAsync(id, cancellationToken);
         if (model is null) return NotFound();
-        var bytes = Models.SaleReceiptPdf.Build(model);
+        var companyName = User.FindFirst("company_name")?.Value ?? "MEDICALERP PHARMACY";
+        var bytes = Models.SaleReceiptPdf.Build(model, companyName);
         return File(bytes, "application/pdf", $"Receipt-{model.InvoiceNumber}.pdf");
     }
 
