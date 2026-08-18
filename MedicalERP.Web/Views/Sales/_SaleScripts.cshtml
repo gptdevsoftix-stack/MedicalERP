@@ -91,18 +91,33 @@
     };
 
     const recalc = () => {
-        let subtotal = 0, discount = 0, tax = 0;
+        let subtotal = 0;
+        const lineCount = body.querySelectorAll('tr').length || 1;
         body.querySelectorAll('tr').forEach(row => {
             const qty = +row.querySelector('[data-field="Quantity"]')?.value || 0;
             const price = +row.querySelector('[data-field="UnitPrice"]')?.value || 0;
-            const discountAmount = +row.querySelector('[data-field="DiscountAmount"]')?.value || 0;
-            const taxAmount = +row.querySelector('[data-field="TaxAmount"]')?.value || 0;
-            const line = qty * price - discountAmount + taxAmount;
+            const line = qty * price;
             row.querySelector('[data-total]').textContent = fmt(line);
             row.querySelector('[data-unit-price]').textContent = fmt(price);
-            subtotal += qty * price; discount += discountAmount; tax += taxAmount;
+            subtotal += line;
         });
+        const discPct = +document.getElementById('sale-discount-pct')?.value || 0;
+        const taxPct = +document.getElementById('sale-tax-pct')?.value || 0;
+        const discount = subtotal * (discPct / 100);
+        const tax = (subtotal - discount) * (taxPct / 100);
         const grandTotal = subtotal - discount + tax;
+        const discPerLine = discount / lineCount;
+        const taxPerLine = tax / lineCount;
+        body.querySelectorAll('tr').forEach(row => {
+            const da = row.querySelector('[data-field="DiscountAmount"]');
+            const ta = row.querySelector('[data-field="TaxAmount"]');
+            if (da) da.value = discPerLine.toFixed(4);
+            if (ta) ta.value = taxPerLine.toFixed(4);
+        });
+        const hfDisc = document.getElementById('hf-ItemDiscount');
+        const hfTax = document.getElementById('hf-TaxAmount');
+        if (hfDisc) hfDisc.value = discount.toFixed(4);
+        if (hfTax) hfTax.value = tax.toFixed(4);
         const paid = +document.getElementById('PaidAmount')?.value || 0;
         document.getElementById('sale-subtotal').textContent = fmt(subtotal);
         document.getElementById('sale-discount').textContent = fmt(discount);
@@ -133,28 +148,17 @@
                         <input name="Items[${i}].Quantity" data-field="Quantity" value="${item?.Quantity ?? 1}" type="number" min="0.0001" step="1" class="form-control text-center" title="Quantity" />
                         <button type="button" class="btn btn-outline-secondary qty-plus" title="Increase"><i class="ti ti-plus"></i></button>
                     </div>
+                    <div class="col">
+                        <label class="form-label small mb-1">Price</label>
+                        <input name="Items[${i}].UnitPrice" data-field="UnitPrice" value="${item?.UnitPrice ?? record?.salePrice ?? ''}" type="number" min="0" step="0.0001" class="form-control form-control-sm text-end" />
+                    </div>
                     <div class="ms-auto text-end">
                         <div class="fw-semibold fs-5" data-total>0.00</div>
                         <small class="text-muted" data-unit-price></small>
                     </div>
                 </div>
-                <button type="button" class="btn btn-sm btn-link p-0 mt-1 text-muted line-details-toggle"><i class="ti ti-adjustments-horizontal me-1"></i>Discount / Tax</button>
-                <div class="line-details mt-2" style="display:none">
-                    <div class="row g-2">
-                        <div class="col-4">
-                            <label class="form-label small mb-1">Price</label>
-                            <input name="Items[${i}].UnitPrice" data-field="UnitPrice" value="${item?.UnitPrice ?? record?.salePrice ?? ''}" type="number" min="0" step="0.0001" class="form-control form-control-sm text-end" />
-                        </div>
-                        <div class="col-4">
-                            <label class="form-label small mb-1">Discount</label>
-                            <input name="Items[${i}].DiscountAmount" data-field="DiscountAmount" value="${item?.DiscountAmount ?? 0}" type="number" min="0" step="0.0001" class="form-control form-control-sm text-end" />
-                        </div>
-                        <div class="col-4">
-                            <label class="form-label small mb-1">Tax</label>
-                            <input name="Items[${i}].TaxAmount" data-field="TaxAmount" value="${item?.TaxAmount ?? 0}" type="number" min="0" step="0.0001" class="form-control form-control-sm text-end" />
-                        </div>
-                    </div>
-                </div>
+                <input type="hidden" name="Items[${i}].DiscountAmount" data-field="DiscountAmount" value="0" />
+                <input type="hidden" name="Items[${i}].TaxAmount" data-field="TaxAmount" value="0" />
                 <div class="sale-row-error text-danger small mt-1"></div>
             </td>`;
         if (record) {
@@ -171,8 +175,6 @@
         const unit = row.querySelector('[data-field="ProductUnitId"]');
         const qty = row.querySelector('[data-field="Quantity"]');
         const price = row.querySelector('[data-field="UnitPrice"]');
-        const details = row.querySelector('.line-details');
-        const toggle = row.querySelector('.line-details-toggle');
         const applyProduct = () => {
             const record = productById(productId);
             if (record && (+price.value || 0) === 0 && !item?.UnitPrice) price.value = record.salePrice || 0;
@@ -191,11 +193,6 @@
             recalc(); clearRowError(row); markDirty();
         });
         row.querySelector('.remove-line').addEventListener('click', () => { row.remove(); reindex(); refreshDuplicates(); recalc(); markDirty(); updateCartCount(); });
-        toggle.addEventListener('click', () => {
-            const show = details.style.display === 'none';
-            details.style.display = show ? '' : 'none';
-            toggle.innerHTML = `<i class="ti ti-adjustments-horizontal me-1"></i>${show ? 'Hide' : 'Discount / Tax'}`;
-        });
 
         applyProduct();
         recalc();
@@ -345,6 +342,8 @@
 
     filterBox.addEventListener('input', renderGrid);
     document.getElementById('PaidAmount')?.addEventListener('input', recalc);
+    document.getElementById('sale-discount-pct')?.addEventListener('input', recalc);
+    document.getElementById('sale-tax-pct')?.addEventListener('input', recalc);
     document.getElementById('clear-cart')?.addEventListener('click', clearCart);
     mobileBar?.addEventListener('click', () => {
         const open = !cart?.classList.contains('open');
@@ -370,5 +369,63 @@
     toggleOtherPaymentMethod();
     initial.forEach(add);
     renderGrid();
+
+    const btnQuickCreate = document.getElementById('btn-quick-create-customer');
+    const customerSelect = document.getElementById('CustomerId');
+    const appModal = document.getElementById('appModal');
+    const appModalBody = document.getElementById('appModalBody');
+    const appModalTitle = appModal?.querySelector('.modal-title');
+
+    btnQuickCreate?.addEventListener('click', () => {
+        fetch('/Customers/QuickCreate')
+            .then(r => { if (!r.ok) throw new Error('Failed to load form'); return r.text(); })
+            .then(html => {
+                if (appModalBody) appModalBody.innerHTML = html;
+                if (appModalTitle) appModalTitle.textContent = 'Quick Create Customer';
+                const bsModal = new bootstrap.Modal(appModal);
+                bsModal.show();
+
+                const qForm = document.getElementById('quick-customer-form');
+                qForm?.addEventListener('submit', e => {
+                    e.preventDefault();
+                    const btn = qForm.querySelector('[type="submit"]');
+                    btn.disabled = true;
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Creating...';
+
+                    fetch('/Customers/QuickCreate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: new URLSearchParams(new FormData(qForm))
+                    })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.success) {
+                            const opt = document.createElement('option');
+                            opt.value = data.id;
+                            opt.textContent = data.name;
+                            customerSelect.appendChild(opt);
+                            customerSelect.value = data.id;
+                            bsModal.hide();
+                            if (typeof common !== 'undefined') common.successToast('Customer created successfully.');
+                        } else {
+                            btn.disabled = false;
+                            btn.innerHTML = '<i class="ti ti-plus me-1"></i>Create Customer';
+                            if (data.message) {
+                                const errDiv = qForm.querySelector('[aspx-validation-summary]');
+                                if (errDiv) { errDiv.textContent = data.message; errDiv.style.display = 'block'; }
+                            }
+                        }
+                    })
+                    .catch(() => {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="ti ti-plus me-1"></i>Create Customer';
+                        if (typeof common !== 'undefined') common.dangerToast('An error occurred while creating the customer.');
+                    });
+                });
+            })
+            .catch(() => {
+                if (typeof common !== 'undefined') common.dangerToast('Failed to load customer form.');
+            });
+    });
 })();
 </script>

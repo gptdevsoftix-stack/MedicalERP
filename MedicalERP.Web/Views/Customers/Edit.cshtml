@@ -1,4 +1,15 @@
 @model MedicalERP.Application.Sales.Dtos.CustomerFormDto
 @{ ViewData["Title"] = "Edit Customer"; }
-<div class="d-flex justify-content-between align-items-center mb-3"><h2>Edit Customer</h2><a asp-action="Index" class="btn btn-outline-secondary">Back</a></div><form asp-action="Edit" asp-route-id="@Model.Id" method="post"><input type="hidden" asp-for="Id" /><partial name="_Form" model="Model" /><div class="text-end"><button class="btn btn-primary">Save Changes</button></div></form>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Edit Customer</h2>
+    <div class="d-flex gap-2">
+        <a asp-controller="Sales" asp-action="Create" asp-route-customerId="@Model.Id" class="btn btn-success"><i class="ti ti-shopping-cart me-1"></i>Create Sale Order</a>
+        <a asp-action="Index" class="btn btn-outline-secondary">Back</a>
+    </div>
+</div>
+<form asp-action="Edit" asp-route-id="@Model.Id" method="post">
+    <input type="hidden" asp-for="Id" />
+    <partial name="_Form" model="Model" />
+    <div class="text-end"><button class="btn btn-primary">Save Changes</button></div>
+</form>
 <partial name="_ValidationScriptsPartial" />

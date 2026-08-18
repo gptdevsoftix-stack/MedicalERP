@@ -21,9 +21,13 @@ public sealed class SalesController(ISaleService service) : Controller
     }
 
     [HttpGet, HasPermission(Permissions.Sales.Create)]
-    public async Task<IActionResult> Create(CancellationToken cancellationToken)
+    public async Task<IActionResult> Create(Guid? customerId, CancellationToken cancellationToken)
     {
-        var model = new SaleFormDto { InvoiceNumber = $"INV-{DateTime.UtcNow:yyyyMMdd-HHmmss}-{Guid.NewGuid().ToString("N")[..6].ToUpperInvariant()}" };
+        var model = new SaleFormDto
+        {
+            InvoiceNumber = $"INV-{DateTime.UtcNow:yyyyMMdd-HHmmss}-{Guid.NewGuid().ToString("N")[..6].ToUpperInvariant()}",
+            CustomerId = customerId
+        };
         var sessionId = await service.EnsureOpenRegisterSessionAsync(cancellationToken);
         model.RegisterSessionId = sessionId;
         await LoadLookupsAsync(model, cancellationToken);

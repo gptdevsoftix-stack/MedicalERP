@@ -50,4 +50,27 @@ public sealed class CustomersController(ICustomerService service) : Controller
         catch (KeyNotFoundException) { return NotFound(); }
         return RedirectToAction(nameof(Index));
     }
+
+    [HttpGet, HasPermission(Permissions.Customers.Create)]
+    public IActionResult QuickCreate() => PartialView("_QuickCreate", new CustomerFormDto());
+
+    [HttpPost, HasPermission(Permissions.Customers.Create)]
+    [IgnoreAntiforgeryToken]
+    public async Task<IActionResult> QuickCreate(CustomerFormDto model, CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+        {
+            Response.StatusCode = 400;
+            return Json(new { success = false, message = "Validation error.", errors = ModelState.Where(x => x.Value.Errors.Any()).ToDictionary(x => x.Key, x => x.Value.Errors.Select(e => e.ErrorMessage).ToArray()) });
+        }
+        try
+        {
+            var id = await service.CreateAsync(model, cancellationToken);
+            return Json(new { success = true, id, name = $"{model.Name} ({model.Code})" });
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or UnauthorizedAccessException)
+        {
+            return Json(new { success = false, message = ex.Message });
+        }
+    }
 }
