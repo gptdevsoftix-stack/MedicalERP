@@ -23,13 +23,6 @@
     var canViewCatalog = canViewCategories || canViewProducts;
     var catalogActive = currentPath.Contains("/Products")
         || currentPath.Contains("/Categories")
-        || currentPath.Contains("/ProductBrands")
-        || currentPath.Contains("/Manufacturers")
-        || currentPath.Contains("/GenericMedicines")
-        || currentPath.Contains("/DosageForms")
-        || currentPath.Contains("/Strengths")
-        || currentPath.Contains("/Units")
-        || currentPath.Contains("/ProductUnits")
         || currentPath.Contains("/ProductBarcodes")
         || currentPath.Contains("/StoreProducts");
     var inventoryActive = currentPath.Contains("/InventoryCrud") || currentPath.Contains("/ProductBatches");
@@ -157,32 +150,11 @@
                                 }
                                 @if (canViewProducts)
                                 {
-                                    <li class="menu-item@(currentPath.Contains("/ProductBrands") ? " active" : "")">
-                                        <a asp-controller="ProductBrands" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><div>Product Brands</div></a>
-                                    </li>
-                                    <li class="menu-item@(currentPath.Contains("/ProductUnits") ? " active" : "")">
-                                        <a asp-controller="ProductUnits" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><i class="menu-icon tf-icons ti ti-ruler-measure"></i><div>Product Units</div></a>
-                                    </li>
                                     <li class="menu-item@(currentPath.Contains("/ProductBarcodes") ? " active" : "")">
                                         <a asp-controller="ProductBarcodes" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><i class="menu-icon tf-icons ti ti-barcode"></i><div>Product Barcodes</div></a>
                                     </li>
                                     <li class="menu-item@(currentPath.Contains("/StoreProducts") ? " active" : "")">
                                         <a asp-controller="StoreProducts" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><i class="menu-icon tf-icons ti ti-building-store"></i><div>Store Products</div></a>
-                                    </li>
-                                    <li class="menu-item@(currentPath.Contains("/Manufacturers") ? " active" : "")">
-                                        <a asp-controller="Manufacturers" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><div>Manufacturers</div></a>
-                                    </li>
-                                    <li class="menu-item@(currentPath.Contains("/GenericMedicines") ? " active" : "")">
-                                        <a asp-controller="GenericMedicines" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><div>Generic Medicines</div></a>
-                                    </li>
-                                    <li class="menu-item@(currentPath.Contains("/DosageForms") ? " active" : "")">
-                                        <a asp-controller="DosageForms" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><div>Dosage Forms</div></a>
-                                    </li>
-                                    <li class="menu-item@(currentPath.Contains("/Strengths") ? " active" : "")">
-                                        <a asp-controller="Strengths" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><div>Strengths</div></a>
-                                    </li>
-                                    <li class="menu-item@(currentPath.Contains("/Units") ? " active" : "")">
-                                        <a asp-controller="Units" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><div>Units</div></a>
                                     </li>
                                 }
                             </ul>

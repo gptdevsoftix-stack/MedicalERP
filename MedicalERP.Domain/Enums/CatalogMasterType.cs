@@ -7,5 +7,6 @@ public enum CatalogMasterType
     GenericMedicine = 3,
     DosageForm = 4,
     Strength = 5,
-    Unit = 6
+    Unit = 6,
+    Category = 7
 }

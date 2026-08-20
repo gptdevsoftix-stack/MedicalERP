@@ -1,3 +1,4 @@
+using MedicalERP.Application.Common;
 using MedicalERP.Application.Interfaces;
 using MedicalERP.Application.Permissions;
 using MedicalERP.Domain.DTOs;
@@ -13,10 +14,17 @@ namespace MedicalERP.Web.Controllers;
 public sealed class ProductsController : Controller
 {
     private readonly IProductService _productService;
+    private readonly ICategoryService _categoryService;
+    private readonly ICatalogMasterService _catalogMasterService;
 
-    public ProductsController(IProductService productService)
+    public ProductsController(
+        IProductService productService,
+        ICategoryService categoryService,
+        ICatalogMasterService catalogMasterService)
     {
         _productService = productService;
+        _categoryService = categoryService;
+        _catalogMasterService = catalogMasterService;
     }
 
     [HttpGet]
@@ -261,6 +269,55 @@ public sealed class ProductsController : Controller
             : new { companyContextId };
     }
 
+    [HttpGet("Products/QuickCreate")]
+    [HasPermission(Permissions.Products.Create)]
+    public IActionResult QuickCreate(CatalogMasterType masterType)
+    {
+        ViewBag.MasterType = masterType;
+        return PartialView("~/Views/Products/_QuickCreateCatalogMaster.cshtml");
+    }
+
+    [HttpPost("Products/QuickCreate")]
+    [IgnoreAntiforgeryToken]
+    [HasPermission(Permissions.Products.Create)]
+    public async Task<IActionResult> QuickCreate(
+        [FromBody] QuickCreateCatalogMasterRequest request,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            if (request.MasterType == CatalogMasterType.Category)
+            {
+                var dto = new CreateCategoryDto
+                {
+                    Name = request.Name,
+                    Code = request.Code ?? request.Name
+                };
+                var id = await _categoryService.CreateAsync(dto, cancellationToken);
+                return Ok(ApiResponse<object>.Ok(new { id, name = request.Name }));
+            }
+
+            var formDto = new CatalogMasterFormDto
+            {
+                MasterType = request.MasterType,
+                Name = request.Name,
+                Code = request.Code,
+                Description = request.Description,
+                LicenseNumber = request.LicenseNumber,
+                Value = request.Value,
+                MeasurementUnit = request.MeasurementUnit,
+                Symbol = request.Symbol,
+                AllowsDecimal = request.AllowsDecimal
+            };
+            var resultId = await _catalogMasterService.CreateAsync(formDto, cancellationToken);
+            return Ok(ApiResponse<object>.Ok(new { id = resultId, name = request.Name }));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ApiResponse<object>.Fail(ex.Message));
+        }
+    }
+
     private string? GetCompanyContextId()
     {
         var companyContextId = Request.Query["companyContextId"].FirstOrDefault();
@@ -270,4 +327,17 @@ public sealed class ProductsController : Controller
 
         return companyContextId;
     }
+}
+
+public sealed class QuickCreateCatalogMasterRequest
+{
+    public CatalogMasterType MasterType { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string? Code { get; set; }
+    public string? Description { get; set; }
+    public string? LicenseNumber { get; set; }
+    public decimal? Value { get; set; }
+    public string? MeasurementUnit { get; set; }
+    public string? Symbol { get; set; }
+    public bool AllowsDecimal { get; set; }
 }
