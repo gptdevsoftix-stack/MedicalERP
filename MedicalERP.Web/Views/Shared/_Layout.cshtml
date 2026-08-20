@@ -16,8 +16,6 @@
     var canViewInventory = HasPermission(Permissions.Inventory.View);
     var canViewPurchases = HasPermission(Permissions.Purchases.View);
     var canViewSales = HasPermission(Permissions.Sales.View);
-    var canViewSuppliers = HasPermission(Permissions.Suppliers.View);
-    var canViewCustomers = HasPermission(Permissions.Customers.View);
     var canViewUsers = HasPermission(Permissions.Users.View);
     var canViewRoles = HasPermission(Permissions.Roles.View);
     var canViewCatalog = canViewCategories || canViewProducts;
@@ -239,30 +237,14 @@
                             <a asp-controller="Sales" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><i class="menu-icon tf-icons ti ti-shopping-cart"></i><div>Sales</div></a>
                         </li>
                     }
-                    @if (HasPermission(Permissions.Sales.Return))
-                    {
-                        <li class="menu-item@(currentPath.Contains("/SaleReturns") ? " active" : "")">
-                            <a asp-controller="SaleReturns" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><i class="menu-icon tf-icons ti ti-receipt-refund"></i><div>Sale Returns</div></a>
-                        </li>
-                    }
+
                     @if (HasPermission(Permissions.Reports.View))
                     {
                         <li class="menu-item@(currentPath.Contains("/Reports") ? " active" : "")">
                             <a asp-controller="Reports" asp-action="Sales" asp-route-companyContextId="@companyContextId" class="menu-link"><i class="menu-icon tf-icons ti ti-chart-bar"></i><div>Reports</div></a>
                         </li>
                     }
-                    @if (canViewSuppliers)
-                    {
-                        <li class="menu-item@(currentPath.Contains("/Suppliers") ? " active" : "")">
-                            <a asp-controller="Suppliers" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><i class="menu-icon tf-icons ti ti-truck"></i><div>Suppliers</div></a>
-                        </li>
-                    }
-                    @if (canViewCustomers)
-                    {
-                        <li class="menu-item@(currentPath.Contains("/Customers") ? " active" : "")">
-                            <a asp-controller="Customers" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><i class="menu-icon tf-icons ti ti-users"></i><div>Customers</div></a>
-                        </li>
-                    }
+
                     @if (canViewUsers)
                     {
                         <li class="menu-item@(currentPath.Contains("/Users") ? " active" : "")">
@@ -273,9 +255,6 @@
                     {
                         <li class="menu-item@(currentPath.Contains("/Roles") ? " active" : "")">
                             <a asp-controller="Roles" asp-action="Index" class="menu-link"><i class="menu-icon tf-icons ti ti-lock"></i><div>Roles</div></a>
-                        </li>
-                        <li class="menu-item@(currentPath.Contains("/Permissions") ? " active" : "")">
-                            <a asp-controller="Permissions" asp-action="Index" class="menu-link"><i class="menu-icon tf-icons ti ti-shield-check"></i><div>Permissions</div></a>
                         </li>
                     }
                    @*  <li class="menu-header small text-uppercase"><span class="menu-header-text">API Endpoints</span></li>
