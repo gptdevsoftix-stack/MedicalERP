@@ -1,6 +1,9 @@
+using MedicalERP.Application.Abstractions.Security;
+using MedicalERP.Application.Common;
 using MedicalERP.Application.Interfaces;
 using MedicalERP.Application.Permissions;
 using MedicalERP.Application.Purchases.Dtos;
+using MedicalERP.Application.Warehouses.Dtos;
 using MedicalERP.Domain.Enums;
 using MedicalERP.Web.Authorization;
 using Microsoft.AspNetCore.Authorization;
@@ -10,7 +13,11 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 namespace MedicalERP.Web.Controllers;
 
 [Authorize]
-public sealed class PurchaseOrdersController(IPurchaseOrderService service) : Controller
+public sealed class PurchaseOrdersController(
+    IPurchaseOrderService service,
+    ISupplierService supplierService,
+    IWarehouseService warehouseService,
+    IStoreContext storeContext) : Controller
 {
     [HttpGet, HasPermission(Permissions.Purchases.View)]
     public async Task<IActionResult> Index(string? search, OrderStatus? status, int page = 1, int pageSize = 25, CancellationToken cancellationToken = default)
@@ -103,4 +110,92 @@ public sealed class PurchaseOrdersController(IPurchaseOrderService service) : Co
     }
 
     private string? GetCompanyContextId() => Request.Query["companyContextId"].FirstOrDefault();
+
+    [HttpGet("PurchaseOrders/QuickCreateSupplier")]
+    [HasPermission(Permissions.Purchases.Create)]
+    public IActionResult QuickCreateSupplier()
+    {
+        return PartialView("~/Views/PurchaseOrders/_QuickCreateSupplier.cshtml");
+    }
+
+    [HttpPost("PurchaseOrders/QuickCreateSupplier")]
+    [IgnoreAntiforgeryToken]
+    [HasPermission(Permissions.Purchases.Create)]
+    public async Task<IActionResult> QuickCreateSupplier(
+        [FromBody] QuickCreateSupplierRequest request,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var dto = new SupplierFormDto
+            {
+                Name = request.Name,
+                Code = request.Code,
+                ContactPerson = request.ContactPerson,
+                Phone = request.Phone,
+                Email = request.Email,
+                Address = request.Address
+            };
+            var id = await supplierService.CreateAsync(dto, cancellationToken);
+            var displayName = $"{request.Name} ({request.Code})";
+            return Ok(ApiResponse<object>.Ok(new { id, name = displayName }));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ApiResponse<object>.Fail(ex.Message));
+        }
+    }
+
+    [HttpGet("PurchaseOrders/QuickCreateWarehouse")]
+    [HasPermission(Permissions.Purchases.Create)]
+    public IActionResult QuickCreateWarehouse()
+    {
+        return PartialView("~/Views/PurchaseOrders/_QuickCreateWarehouse.cshtml");
+    }
+
+    [HttpPost("PurchaseOrders/QuickCreateWarehouse")]
+    [IgnoreAntiforgeryToken]
+    [HasPermission(Permissions.Purchases.Create)]
+    public async Task<IActionResult> QuickCreateWarehouse(
+        [FromBody] QuickCreateWarehouseRequest request,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var storeId = storeContext.SelectedStoreId
+                ?? throw new InvalidOperationException("No store selected.");
+            var dto = new CreateWarehouseRequest(
+                storeId,
+                request.Name,
+                request.Code,
+                request.WarehouseType,
+                request.Address,
+                false);
+            var result = await warehouseService.CreateAsync(dto, cancellationToken);
+            var displayName = $"{request.Name} ({request.Code})";
+            return Ok(ApiResponse<object>.Ok(new { id = result.Id, name = displayName }));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ApiResponse<object>.Fail(ex.Message));
+        }
+    }
+}
+
+public sealed class QuickCreateSupplierRequest
+{
+    public string Name { get; set; } = string.Empty;
+    public string Code { get; set; } = string.Empty;
+    public string? ContactPerson { get; set; }
+    public string? Phone { get; set; }
+    public string? Email { get; set; }
+    public string? Address { get; set; }
+}
+
+public sealed class QuickCreateWarehouseRequest
+{
+    public string Name { get; set; } = string.Empty;
+    public string Code { get; set; } = string.Empty;
+    public WarehouseType WarehouseType { get; set; } = WarehouseType.Main;
+    public string? Address { get; set; }
 }

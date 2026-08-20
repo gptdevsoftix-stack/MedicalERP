@@ -191,5 +191,98 @@
     });
 
     (initial.length ? initial : [{}]).forEach(add);
+
+    const appModal = document.getElementById('appModal');
+    const appModalBody = document.getElementById('appModalBody');
+    const appModalTitle = appModal?.querySelector('.modal-title');
+
+    function handleQuickCreate(btnId, fetchUrl, formId, postUrl, selectId, buildPayload, displayName) {
+        const btn = document.getElementById(btnId);
+        btn?.addEventListener('click', () => {
+            fetch(fetchUrl)
+                .then(r => { if (!r.ok) throw new Error('Failed to load form'); return r.text(); })
+                .then(html => {
+                    if (appModalBody) appModalBody.innerHTML = html;
+                    if (appModalTitle) appModalTitle.textContent = displayName;
+                    const bsModal = new bootstrap.Modal(appModal);
+                    bsModal.show();
+
+                    const form = document.getElementById(formId);
+                    form?.addEventListener('submit', e => {
+                        e.preventDefault();
+                        const submitBtn = form.querySelector('[type="submit"]');
+                        submitBtn.disabled = true;
+                        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Creating...';
+
+                        fetch(postUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(buildPayload())
+                        })
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.success && data.data) {
+                                const select = document.getElementById(selectId);
+                                const opt = document.createElement('option');
+                                opt.value = data.data.id;
+                                opt.textContent = data.data.name;
+                                select.appendChild(opt);
+                                select.value = data.data.id;
+                                bsModal.hide();
+                                if (typeof common !== 'undefined') common.successToast('Created successfully.');
+                            } else {
+                                submitBtn.disabled = false;
+                                submitBtn.innerHTML = '<i class="ti ti-plus me-1"></i>Create';
+                                const errDiv = form.querySelector('.alert-danger');
+                                if (errDiv) {
+                                    errDiv.textContent = data.message || 'Failed to create.';
+                                    errDiv.classList.remove('d-none');
+                                }
+                            }
+                        })
+                        .catch(() => {
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = '<i class="ti ti-plus me-1"></i>Create';
+                            if (typeof common !== 'undefined') common.dangerToast('An error occurred.');
+                        });
+                    });
+                })
+                .catch(() => {
+                    if (typeof common !== 'undefined') common.dangerToast('Failed to load form.');
+                });
+        });
+    }
+
+    handleQuickCreate(
+        'btn-quick-create-supplier',
+        '/PurchaseOrders/QuickCreateSupplier',
+        'quick-create-supplier-form',
+        '/PurchaseOrders/QuickCreateSupplier',
+        'SupplierId',
+        () => ({
+            name: document.getElementById('qcs-name')?.value?.trim() || '',
+            code: document.getElementById('qcs-code')?.value?.trim() || '',
+            contactPerson: document.getElementById('qcs-contact')?.value?.trim() || null,
+            phone: document.getElementById('qcs-phone')?.value?.trim() || null,
+            email: document.getElementById('qcs-email')?.value?.trim() || null,
+            address: document.getElementById('qcs-address')?.value?.trim() || null
+        }),
+        'New Supplier'
+    );
+
+    handleQuickCreate(
+        'btn-quick-create-warehouse',
+        '/PurchaseOrders/QuickCreateWarehouse',
+        'quick-create-warehouse-form',
+        '/PurchaseOrders/QuickCreateWarehouse',
+        'WarehouseId',
+        () => ({
+            name: document.getElementById('qcw-name')?.value?.trim() || '',
+            code: document.getElementById('qcw-code')?.value?.trim() || '',
+            warehouseType: parseInt(document.getElementById('qcw-type')?.value) || 1,
+            address: document.getElementById('qcw-address')?.value?.trim() || null
+        }),
+        'New Warehouse'
+    );
 })();
 </script>
