@@ -1,234 +1,105 @@
 @model MedicalERP.Application.Sales.Dtos.SaleFormDto
-@using MedicalERP.Domain.Enums
+
 @using System.Security.Claims
 @{
     ViewData["Title"] = $"Receipt - {Model.InvoiceNumber}";
-    var companyName = User.FindFirst("company_name")?.Value ?? "MEDICALERP";
+    var companyName = User.FindFirst("company_name")?.Value ?? "MEDICALERP PHARMACY";
+    var customerName = Model.CustomerName ?? "Cash Sale Walk-in Customer";
+    var totalDiscount = Model.ItemDiscount + Model.InvoiceDiscount;
+    var itemCount = Model.Items.Sum(x => x.Quantity);
 }
-<div class="d-flex justify-content-between align-items-center mb-3 d-print-none">
-    <div><h2 class="mb-1">Receipt</h2><div class="text-muted">@Model.InvoiceNumber</div></div>
+
+<div class="receipt-actions d-flex justify-content-between align-items-center mb-3 d-print-none">
+    <div><h2 class="mb-1">Sale Receipt</h2><div class="text-muted">@Model.InvoiceNumber</div></div>
     <div class="d-flex gap-2">
         <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary">Back</a>
-        <a asp-action="ReceiptPdf" asp-route-id="@Model.Id" class="btn btn-outline-primary" title="Download as PDF"><i class="ti ti-download me-1"></i>Download PDF</a>
+        <a asp-action="ReceiptPdf" asp-route-id="@Model.Id" class="btn btn-outline-primary"><i class="ti ti-download me-1"></i>Download PDF</a>
         <button type="button" class="btn btn-primary" onclick="window.print()"><i class="ti ti-printer me-1"></i>Print</button>
     </div>
 </div>
 
-@if (TempData["SuccessMessage"] is not null) { <div class="alert alert-success d-print-none">@TempData["SuccessMessage"]</div> }
+<div class="receipt-stage">
+    <article class="thermal-receipt" id="receipt">
+        <header class="thermal-header">
+            <h1>@companyName</h1>
+            <strong>(Pharmacy)</strong>
+            <p>Quality medicines &amp; healthcare services</p>
+        </header>
 
-<div class="d-flex justify-content-center">
-    <div class="receipt" id="receipt">
-        <div class="receipt-header">
-            <div class="receipt-brand">@companyName</div>
-            <div class="receipt-subtitle">Medical ERP &amp; POS</div>
-            <div class="receipt-invoice">@Model.InvoiceNumber</div>
-            <div class="receipt-date">@Model.SaleDate.ToString("yyyy-MM-dd HH:mm")</div>
+        <div class="title-strip">Sale Receipt</div>
+        <div class="meta-grid">
+            <span><b>Bill No:</b> @Model.InvoiceNumber</span><b class="right">Original</b>
+            <span><b>Date &amp; Time:</b></span><span class="right">@Model.SaleDate.ToString("dd-MMM-yyyy HH:mm")</span>
+            <span class="wide"><b>Customer:</b> @customerName</span>
         </div>
 
-        <div class="receipt-divider"></div>
-
-        <div class="receipt-info">
-            <div class="d-flex justify-content-between"><span class="text-muted">Customer</span><strong>@(Model.CustomerName ?? "Walk-in customer")</strong></div>
-            <div class="d-flex justify-content-between"><span class="text-muted">Register session</span><span>@(Model.RegisterSessionName ?? "Auto / Open")</span></div>
-            <div class="d-flex justify-content-between"><span class="text-muted">Status</span>
-                <span class="badge bg-@(Model.Status == SaleStatus.Confirmed ? "success" : Model.Status == SaleStatus.Cancelled ? "danger" : "warning")">@Model.Status</span>
-            </div>
-        </div>
-
-        <div class="receipt-divider"></div>
-
-        <table class="receipt-table">
-            <thead>
-                <tr><th>Item</th><th class="text-end">Qty</th><th class="text-end">Price</th><th class="text-end">Total</th></tr>
-            </thead>
+        <table class="items-table">
+            <thead><tr><th>Description</th><th>Qty</th><th>Price</th><th>Disc</th><th>Total</th></tr></thead>
             <tbody>
-                @foreach (var item in Model.Items)
-                {
-                    <tr>
-                        <td>
-                            <span>@(item.ProductName ?? string.Empty)</span>
-                            <small>@(item.ProductUnitName ?? string.Empty)</small>
-                        </td>
-                        <td class="text-end">@item.Quantity.ToString("N4")</td>
-                        <td class="text-end">Rs @item.UnitPrice.ToString("N2")</td>
-                        <td class="text-end">Rs @item.NetAmount.ToString("N2")</td>
-                    </tr>
-                }
+            @foreach (var item in Model.Items)
+            {
+                <tr>
+                    <td>@(item.ProductName ?? "-")<small>@item.ProductUnitName</small></td>
+                    <td>@item.Quantity.ToString("0.####")</td>
+                    <td>@item.UnitPrice.ToString("N2")</td>
+                    <td>@item.DiscountAmount.ToString("N2")</td>
+                    <td>@item.NetAmount.ToString("N2")</td>
+                </tr>
+            }
             </tbody>
+            <tfoot><tr><td><b>@Model.Items.Count item(s)</b></td><td><b>@itemCount.ToString("0.####")</b></td><td colspan="2">Item Disc:</td><td>@Model.ItemDiscount.ToString("N2")</td></tr></tfoot>
         </table>
 
-        <div class="receipt-divider"></div>
-
-        <div class="receipt-totals">
-            <div class="d-flex justify-content-between"><span>Subtotal</span><span>Rs @Model.Subtotal.ToString("N2")</span></div>
-            <div class="d-flex justify-content-between"><span>Discount</span><span>- Rs @Model.ItemDiscount.ToString("N2")</span></div>
-            <div class="d-flex justify-content-between"><span>Tax</span><span>Rs @Model.TaxAmount.ToString("N2")</span></div>
-            <div class="receipt-grand d-flex justify-content-between"><strong>Grand Total</strong><strong>Rs @Model.GrandTotal.ToString("N2")</strong></div>
+        <div class="totals">
+            <div><span>Gross Total:</span><b>@Model.Subtotal.ToString("N2")</b></div>
+            @if (Model.InvoiceDiscount > 0) { <div><span>(-) Invoice Disc:</span><b>@Model.InvoiceDiscount.ToString("N2")</b></div> }
+            @if (Model.TaxAmount > 0) { <div><span>Tax:</span><b>@Model.TaxAmount.ToString("N2")</b></div> }
+            @if (Model.RoundOffAmount != 0) { <div><span>Round Off:</span><b>@Model.RoundOffAmount.ToString("N2")</b></div> }
+            <div class="net"><span>Net Total:</span><b>@Model.GrandTotal.ToString("N2")</b></div>
+            <div><span>Cash Received:</span><b>@Model.PaidAmount.ToString("N2")</b></div>
+            <div><span>Cash Back:</span><b>@Model.ChangeAmount.ToString("N2")</b></div>
+            @if (Model.DueAmount > 0) { <div><span>Balance Due:</span><b>@Model.DueAmount.ToString("N2")</b></div> }
         </div>
 
-        <div class="receipt-divider"></div>
+        <div class="saved"><span>You Saved</span><b>@totalDiscount.ToString("N2")</b></div>
+        <div class="operator"><span>User: @User.Identity?.Name</span><span><b>Counter:</b> @(Model.RegisterSessionName ?? "Pharmacy")</span></div>
+        <div class="barcode" aria-label="Barcode @Model.InvoiceNumber"></div>
+        <div class="barcode-number">@Model.InvoiceNumber</div>
 
-        @if (Model.Payments.Count > 0)
-        {
-            <div class="receipt-payments">
-                @foreach (var p in Model.Payments)
-                {
-                    <div class="d-flex justify-content-between"><span>@(p.PaymentMethodName ?? "Payment")</span><span>Rs @p.Amount.ToString("N2")</span></div>
-                }
-            </div>
-        }
-        <div class="receipt-payments">
-            <div class="d-flex justify-content-between"><span>Paid</span><strong>Rs @Model.PaidAmount.ToString("N2")</strong></div>
-            <div class="d-flex justify-content-between"><span>Change</span><span>Rs @Model.ChangeAmount.ToString("N2")</span></div>
-            @if (Model.DueAmount > 0)
-            {
-                <div class="d-flex justify-content-between"><span>Balance due</span><strong>Rs @Model.DueAmount.ToString("N2")</strong></div>
-            }
-        </div>
-
-        <div class="receipt-divider"></div>
-
-        <div class="receipt-footer">
-            <div class="receipt-thanks">Thank you for your purchase!</div>
-            <div class="receipt-note">Medicines should be stored as directed on the label.</div>
-        </div>
-    </div>
+        <footer>
+            <p>* No Return or Exchange Without Receipt.<br />* Exchange within 3 days of purchase.<br />* No Cash Refunds.</p>
+            <strong>THANK YOU FOR YOUR VISIT</strong>
+            <small>Powered by MedicalERP</small>
+        </footer>
+    </article>
 </div>
 
 <style>
-    .receipt {
-        width: 100%;
-        max-width: 420px;
-        background: #fff;
-        color: #1f2330;
-        border-radius: .75rem;
-        padding: 1.75rem;
-        box-shadow: 0 .5rem 1.5rem rgba(75, 70, 92, .12);
-        font-size: .875rem;
-    }
-
-    .receipt-header {
-        text-align: center;
-    }
-
-    .receipt-brand {
-        font-size: 1.35rem;
-        font-weight: 700;
-        letter-spacing: .08em;
-        color: #7367f0;
-    }
-
-    .receipt-subtitle {
-        font-size: .75rem;
-        color: #6f6b7d;
-        margin-top: .15rem;
-    }
-
-    .receipt-invoice {
-        font-weight: 600;
-        margin-top: .75rem;
-        color: #4b465c;
-    }
-
-    .receipt-date {
-        font-size: .78rem;
-        color: #6f6b7d;
-    }
-
-    .receipt-divider {
-        border-top: 1px dashed #d8d6de;
-        margin: .9rem 0;
-    }
-
-    .receipt-info,
-    .receipt-totals,
-    .receipt-payments {
-        display: flex;
-        flex-direction: column;
-        gap: .3rem;
-    }
-
-    .receipt-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-    .receipt-table th {
-        font-size: .72rem;
-        text-transform: uppercase;
-        letter-spacing: .04em;
-        color: #6f6b7d;
-        border-bottom: 1px solid #e8e6ee;
-        padding: 0 0 .35rem;
-    }
-
-    .receipt-table td {
-        padding: .45rem 0;
-        border-bottom: 1px solid #f0eef5;
-        vertical-align: top;
-    }
-
-    .receipt-table td small {
-        display: block;
-        color: #a5a3b9;
-    }
-
-    .receipt-grand {
-        border-top: 1px solid #e8e6ee;
-        padding-top: .5rem;
-        margin-top: .25rem;
-        color: #7367f0;
-        font-size: 1.05rem;
-    }
-
-    .receipt-footer {
-        text-align: center;
-    }
-
-    .receipt-thanks {
-        font-weight: 600;
-    }
-
-    .receipt-note {
-        font-size: .72rem;
-        color: #6f6b7d;
-        margin-top: .2rem;
-    }
-
+    .receipt-stage { display:flex; justify-content:center; padding:1rem; background:#eef0f4; }
+    .thermal-receipt { box-sizing:border-box; width:80mm; min-height:150mm; padding:5mm 4mm; background:#fff; color:#111; font-family:"Courier New",monospace; font-size:10px; line-height:1.25; box-shadow:0 4px 18px rgba(0,0,0,.14); }
+    .thermal-header { text-align:center; }
+    .thermal-header h1 { margin:0; font:700 20px/1.1 Georgia,serif; }
+    .thermal-header strong { display:block; font:700 15px/1.2 Georgia,serif; }
+    .thermal-header p { margin:3px 0 5px; font-size:9px; }
+    .title-strip { margin:3px 0 5px; padding:2px; background:#111; color:#fff; text-align:center; font-weight:700; font-size:11px; }
+    .meta-grid { display:grid; grid-template-columns:1fr 1fr; gap:3px 5px; }
+    .meta-grid .right { text-align:right; }.meta-grid .wide { grid-column:1/-1; }.meta-grid b { font-family:Georgia,serif; }
+    .items-table { width:100%; margin-top:6px; border-collapse:collapse; table-layout:fixed; }
+    .items-table th { padding:2px 1px; border-bottom:1px solid #111; text-align:right; font-family:Georgia,serif; }
+    .items-table th:first-child,.items-table td:first-child { width:42%; text-align:left; }
+    .items-table td { padding:3px 1px; text-align:right; vertical-align:top; overflow-wrap:anywhere; }
+    .items-table td small { display:block; color:#444; }.items-table tfoot td { border-top:1px solid #111; border-bottom:1px solid #111; }
+    .totals { width:59%; margin:4px 0 0 auto; font-family:Georgia,serif; font-size:11px; }
+    .totals div { display:flex; justify-content:space-between; gap:5px; margin:2px 0; }.totals .net { font-size:13px; }
+    .saved { display:flex; justify-content:space-between; align-items:baseline; margin:6px 0 3px; padding:2px 3px; border-bottom:2px solid #111; font-family:Arial,sans-serif; font-size:20px; }.saved b { font-size:21px; }
+    .operator { display:flex; justify-content:space-between; padding:2px 0 4px; border-bottom:1px solid #111; font-family:Georgia,serif; }
+    .barcode { width:39mm; height:15mm; margin:6px auto 1px; background:repeating-linear-gradient(90deg,#111 0,#111 1px,transparent 1px,transparent 3px,#111 3px,#111 5px,transparent 5px,transparent 7px,#111 7px,#111 8px,transparent 8px,transparent 11px); }
+    .barcode-number { text-align:center; letter-spacing:2px; font-size:9px; }
+    footer { text-align:center; font-family:Georgia,serif; } footer p { margin:5px 0; font-size:9px; } footer strong { display:block; padding-bottom:2px; border-bottom:1px solid #111; font-size:12px; font-style:italic; text-decoration:underline; } footer small { display:block; margin-top:4px; }
     @@media print {
-        @@page {
-            margin: 10mm;
-            size: 80mm auto;
-        }
-
-        body {
-            background: #fff !important;
-        }
-
-        .layout-menu,
-        .layout-navbar,
-        .content-backdrop,
-        .d-print-none,
-        .app-brand.demo {
-            display: none !important;
-        }
-
-        .layout-wrapper,
-        .layout-container,
-        .layout-page,
-        .content-wrapper,
-        .container-xxl,
-        .container-p-y {
-            padding: 0 !important;
-            margin: 0 !important;
-            max-width: none !important;
-        }
-
-        .receipt {
-            max-width: none;
-            box-shadow: none;
-            border-radius: 0;
-            padding: 0;
-        }
+        @@page { size:80mm auto; margin:0; }
+        body { background:#fff!important; }.layout-menu,.layout-navbar,.content-backdrop,.d-print-none,.app-brand.demo { display:none!important; }
+        .layout-wrapper,.layout-container,.layout-page,.content-wrapper,.container-xxl,.container-p-y { margin:0!important; padding:0!important; max-width:none!important; }
+        .receipt-stage { display:block; padding:0; background:#fff; }.thermal-receipt { width:80mm; min-height:0; padding:4mm 3mm; box-shadow:none; }
     }
 </style>
