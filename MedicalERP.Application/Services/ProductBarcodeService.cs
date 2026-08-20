@@ -1,4 +1,5 @@
 using MedicalERP.Application.Abstractions.Security;
+using MedicalERP.Application.Common;
 using MedicalERP.Application.Interfaces;
 using MedicalERP.Domain.Catalog;
 using MedicalERP.Domain.DTOs;
@@ -38,6 +39,26 @@ public sealed class ProductBarcodeService : IProductBarcodeService
             cancellationToken);
 
         return records.Select(MapList).ToList();
+    }
+
+    public async Task<PagedResult<ProductBarcodeListDto>> GetPagedAsync(
+        Guid? productId,
+        string? search,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default)
+    {
+        var companyId = GetRequiredCompanyId();
+
+        var totalCount = await _repository.CountAsync(
+            companyId, productId, search, cancellationToken);
+
+        var records = await _repository.GetPagedAsync(
+            companyId, productId, search, page, pageSize, cancellationToken);
+
+        var items = records.Select(MapList).ToList();
+
+        return new PagedResult<ProductBarcodeListDto>(items, page, pageSize, totalCount);
     }
 
     public async Task<ProductBarcodeFormDto?> GetFormByIdAsync(

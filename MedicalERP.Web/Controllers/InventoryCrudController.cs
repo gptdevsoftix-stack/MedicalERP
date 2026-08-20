@@ -63,6 +63,8 @@ public sealed class InventoryCrudController : Controller
     public async Task<IActionResult> Index(
         string type = "ProductBatches",
         Guid? categoryId = null,
+        int page = 1,
+        int pageSize = 25,
         CancellationToken cancellationToken = default)
     {
         if (!TryGetDefinition(type, out var definition))
@@ -105,14 +107,20 @@ public sealed class InventoryCrudController : Controller
                 .FirstOrDefaultAsync(cancellationToken);
         }
 
-        var records = await Query(definition.EntityType).ToListAsync(cancellationToken);
-        var query = records
+        var allRecords = await Query(definition.EntityType).ToListAsync(cancellationToken);
+
+        var filtered = allRecords
             .OfType<CompanyEntity>()
             .Where(x => x.CompanyId == companyId);
 
         if (selectedStoreId.HasValue)
         {
-            query = query.Where(x => x is not StoreEntity store || store.StoreId == selectedStoreId.Value);
+            filtered = filtered.Where(x =>
+            {
+                if (x is StoreEntity store)
+                    return store.StoreId == selectedStoreId.Value;
+                return true;
+            });
         }
 
         if (isInventoryStocks && categoryId.HasValue)
@@ -122,16 +130,34 @@ public sealed class InventoryCrudController : Controller
                 .Select(product => product.Id)
                 .ToHashSetAsync(cancellationToken);
 
-            query = query.Where(x => x is InventoryStock stock && categoryProductIds.Contains(stock.ProductId));
+            filtered = filtered.Where(x =>
+            {
+                if (x is InventoryStock stock)
+                    return categoryProductIds.Contains(stock.ProductId);
+                return true;
+            });
         }
 
-        var model = query
+        var totalCount = filtered.Count();
+
+        var model = filtered
             .OrderByDescending(x => x.CreatedAt)
-            .Take(500)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .Cast<object>()
             .ToArray();
 
-        return View(model);
+        ViewBag.PaginationRouteValues = new Dictionary<string, object?>
+        {
+            ["type"] = type,
+            ["categoryId"] = categoryId,
+            ["companyContextId"] = GetCompanyContextId()
+        };
+
+        var pagedResult = new MedicalERP.Application.Common.PagedResult<object>(
+            model.ToArray(), page, pageSize, totalCount);
+
+        return View(pagedResult);
     }
 
     [HttpGet]

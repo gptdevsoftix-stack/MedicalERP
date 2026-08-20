@@ -1,4 +1,5 @@
-﻿using MedicalERP.Domain.DTOs;
+﻿using MedicalERP.Application.Common;
+using MedicalERP.Domain.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -10,6 +11,12 @@ namespace MedicalERP.Application.Interfaces
     {
         Task<List<CategoryDto>> GetAllAsync(
             string? search,
+            CancellationToken cancellationToken = default);
+
+        Task<PagedResult<CategoryDto>> GetAllPagedAsync(
+            string? search,
+            int page,
+            int pageSize,
             CancellationToken cancellationToken = default);
 
         Task<CategoryDto?> GetByIdAsync(

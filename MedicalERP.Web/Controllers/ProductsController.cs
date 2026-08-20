@@ -34,7 +34,9 @@ public sealed class ProductsController : Controller
         Guid? categoryId,
         bool? isMedicine,
         bool? isActive,
-        CancellationToken cancellationToken)
+        int page = 1,
+        int pageSize = 25,
+        CancellationToken cancellationToken = default)
     {
         ViewBag.Search = search;
         ViewBag.CategoryId = categoryId;
@@ -44,14 +46,18 @@ public sealed class ProductsController : Controller
 
         await LoadCategoryFilterAsync(categoryId, cancellationToken);
 
-        var products = await _productService.GetAllAsync(
+        var result = await _productService.GetAllPagedAsync(
             search,
             categoryId,
             isMedicine,
             isActive,
+            page,
+            pageSize,
             cancellationToken);
 
-        return View(products);
+        ViewBag.PaginationRouteValues = GetPaginationRouteValues(search, categoryId, isMedicine, isActive);
+
+        return View(result);
     }
 
     [HttpGet]
@@ -267,6 +273,23 @@ public sealed class ProductsController : Controller
         return string.IsNullOrWhiteSpace(companyContextId)
             ? null
             : new { companyContextId };
+    }
+
+    private Dictionary<string, object?> GetPaginationRouteValues(
+        string? search,
+        Guid? categoryId,
+        bool? isMedicine,
+        bool? isActive)
+    {
+        var companyContextId = GetCompanyContextId();
+        return new Dictionary<string, object?>
+        {
+            ["search"] = search,
+            ["categoryId"] = categoryId,
+            ["isMedicine"] = isMedicine,
+            ["isActive"] = isActive,
+            ["companyContextId"] = companyContextId
+        };
     }
 
     [HttpGet("Products/QuickCreate")]

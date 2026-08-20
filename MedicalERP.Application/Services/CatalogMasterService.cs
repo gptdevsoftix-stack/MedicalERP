@@ -1,4 +1,5 @@
 using MedicalERP.Application.Abstractions.Security;
+using MedicalERP.Application.Common;
 using MedicalERP.Application.Interfaces;
 using MedicalERP.Domain.Catalog;
 using MedicalERP.Domain.Common;
@@ -34,6 +35,26 @@ public sealed class CatalogMasterService : ICatalogMasterService
             cancellationToken);
 
         return entities.Select(x => MapToDto(masterType, x)).ToList();
+    }
+
+    public async Task<PagedResult<CatalogMasterDto>> GetAllPagedAsync(
+        CatalogMasterType masterType,
+        string? search,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default)
+    {
+        var companyId = _companyContext.CompanyId;
+
+        var totalCount = await _repository.CountAsync(
+            masterType, companyId, search, cancellationToken);
+
+        var entities = await _repository.GetPagedAsync(
+            masterType, companyId, search, page, pageSize, cancellationToken);
+
+        var items = entities.Select(x => MapToDto(masterType, x)).ToList();
+
+        return new PagedResult<CatalogMasterDto>(items, page, pageSize, totalCount);
     }
 
     public async Task<CatalogMasterDto?> GetByIdAsync(

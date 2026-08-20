@@ -23,15 +23,24 @@ public sealed class CategoriesController : Controller
     [HasPermission(Permissions.Categories.View)]
     public async Task<IActionResult> Index(
         string? search,
-        CancellationToken cancellationToken)
+        int page = 1,
+        int pageSize = 25,
+        CancellationToken cancellationToken = default)
     {
         ViewBag.Search = search;
 
-        var categories = await _categoryService.GetAllAsync(
+        var result = await _categoryService.GetAllPagedAsync(
             search,
+            page,
+            pageSize,
             cancellationToken);
 
-        return View(categories);
+        ViewBag.PaginationRouteValues = new Dictionary<string, object?>
+        {
+            ["search"] = search
+        };
+
+        return View(result);
     }
 
     [HttpGet]

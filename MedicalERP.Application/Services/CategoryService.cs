@@ -1,4 +1,5 @@
 ﻿using MedicalERP.Application.Abstractions.Security;
+using MedicalERP.Application.Common;
 using MedicalERP.Application.Interfaces;
 using MedicalERP.Domain.Catalog;
 using MedicalERP.Domain.DTOs;
@@ -32,6 +33,25 @@ namespace MedicalERP.Application.Services
                 cancellationToken);
 
             return categories.Select(MapToDto).ToList();
+        }
+
+        public async Task<PagedResult<CategoryDto>> GetAllPagedAsync(
+            string? search,
+            int page,
+            int pageSize,
+            CancellationToken cancellationToken = default)
+        {
+            var companyId = _companyContext.CompanyId;
+
+            var totalCount = await _repository.CountAsync(
+                companyId, search, cancellationToken);
+
+            var categories = await _repository.GetPagedAsync(
+                companyId, search, page, pageSize, cancellationToken);
+
+            var items = categories.Select(MapToDto).ToList();
+
+            return new PagedResult<CategoryDto>(items, page, pageSize, totalCount);
         }
 
         public async Task<CategoryDto?> GetByIdAsync(

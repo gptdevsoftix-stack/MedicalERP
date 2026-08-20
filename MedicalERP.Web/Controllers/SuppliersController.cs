@@ -14,6 +14,7 @@ public sealed class SuppliersController(ISupplierService service) : Controller
     public async Task<IActionResult> Index(string? search, bool? isActive, int page = 1, int pageSize = 25, CancellationToken cancellationToken = default)
     {
         ViewBag.Search = search; ViewBag.IsActive = isActive; ViewBag.CompanyContextId = Request.Query["companyContextId"].FirstOrDefault();
+        ViewBag.PaginationRouteValues = new Dictionary<string, object?> { ["search"] = search, ["isActive"] = isActive, ["companyContextId"] = ViewBag.CompanyContextId };
         return View(await service.GetAsync(search, isActive, page, pageSize, cancellationToken));
     }
 

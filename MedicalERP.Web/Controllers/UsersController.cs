@@ -13,7 +13,11 @@ namespace MedicalERP.Web.Controllers;
 public sealed class UsersController(IIdentityService identity, IStoreService stores, ICompanyService companies) : Controller
 {
     [HttpGet("/Users")]
-    public async Task<IActionResult> Index([FromQuery] QueryParameters query, CancellationToken ct) => View(await identity.GetUsersAsync(query, ct));
+    public async Task<IActionResult> Index([FromQuery] QueryParameters query, CancellationToken ct)
+    {
+        ViewBag.PaginationRouteValues = new Dictionary<string, object?> { };
+        return View(await identity.GetUsersAsync(query, ct));
+    }
 
     [HttpGet("/Users/Create")]
     public async Task<IActionResult> CreatePage(CancellationToken ct) => View("Create", await Populate(new UserFormViewModel(), ct));

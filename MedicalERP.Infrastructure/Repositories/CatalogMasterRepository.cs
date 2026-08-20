@@ -22,6 +22,45 @@ public sealed class CatalogMasterRepository : ICatalogMasterRepository
         string? search,
         CancellationToken cancellationToken = default)
     {
+        var query = BuildQuery(masterType, companyId, search);
+
+        return await query
+            .OrderBy(x => EF.Property<string>(x, "Name"))
+            .ToListAsync(cancellationToken);
+    }
+
+    public Task<int> CountAsync(
+        CatalogMasterType masterType,
+        Guid? companyId,
+        string? search,
+        CancellationToken cancellationToken = default)
+    {
+        return BuildQuery(masterType, companyId, search)
+            .CountAsync(cancellationToken);
+    }
+
+    public async Task<List<CompanyEntity>> GetPagedAsync(
+        CatalogMasterType masterType,
+        Guid? companyId,
+        string? search,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default)
+    {
+        var query = BuildQuery(masterType, companyId, search);
+
+        return await query
+            .OrderBy(x => EF.Property<string>(x, "Name"))
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+    }
+
+    private IQueryable<CompanyEntity> BuildQuery(
+        CatalogMasterType masterType,
+        Guid? companyId,
+        string? search)
+    {
         var query = Query(masterType)
             .AsNoTracking()
             .Where(x => !companyId.HasValue || x.CompanyId == companyId.Value);
@@ -32,9 +71,7 @@ public sealed class CatalogMasterRepository : ICatalogMasterRepository
             query = query.Where(x => EF.Property<string>(x, "Name").Contains(value));
         }
 
-        return await query
-            .OrderBy(x => EF.Property<string>(x, "Name"))
-            .ToListAsync(cancellationToken);
+        return query;
     }
 
     public Task<CompanyEntity?> GetByIdAsync(

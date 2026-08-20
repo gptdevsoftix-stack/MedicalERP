@@ -213,6 +213,15 @@ public sealed class ProductBatchesController : Controller
         ViewBag.IsActive = filter.IsActive;
         ViewBag.ExpiringBefore = filter.ExpiringBefore;
         ViewBag.CompanyContextId = GetCompanyContextId();
+        ViewBag.PaginationRouteValues = new Dictionary<string, object?>
+        {
+            ["productId"] = filter.ProductId,
+            ["warehouseId"] = filter.WarehouseId,
+            ["search"] = filter.Search,
+            ["isActive"] = filter.IsActive,
+            ["expiringBefore"] = filter.ExpiringBefore,
+            ["companyContextId"] = GetCompanyContextId()
+        };
     }
 
     private object? GetCompanyRouteValues()

@@ -24,6 +24,7 @@ public sealed class PurchaseOrdersController(
     {
         var filter = new PurchaseOrderFilterDto { Search = search, Status = status, Page = page, PageSize = pageSize };
         ViewBag.Search = search; ViewBag.Status = status; ViewBag.CompanyContextId = GetCompanyContextId();
+        ViewBag.PaginationRouteValues = new Dictionary<string, object?> { ["search"] = search, ["status"] = status, ["companyContextId"] = GetCompanyContextId() };
         return View(await service.GetAsync(filter, cancellationToken));
     }
 

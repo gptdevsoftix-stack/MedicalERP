@@ -26,16 +26,26 @@ public abstract class CatalogMastersController : Controller
     [HasPermission(Permissions.Products.View)]
     public async Task<IActionResult> Index(
         string? search,
-        CancellationToken cancellationToken)
+        int page = 1,
+        int pageSize = 25,
+        CancellationToken cancellationToken = default)
     {
         SetViewData(search);
 
-        var records = await _service.GetAllAsync(
+        var result = await _service.GetAllPagedAsync(
             MasterType,
             search,
+            page,
+            pageSize,
             cancellationToken);
 
-        return View("~/Views/CatalogMasters/Index.cshtml", records);
+        ViewBag.PaginationRouteValues = new Dictionary<string, object?>
+        {
+            ["search"] = search,
+            ["companyContextId"] = GetCompanyContextId()
+        };
+
+        return View("~/Views/CatalogMasters/Index.cshtml", result);
     }
 
     [HttpGet]

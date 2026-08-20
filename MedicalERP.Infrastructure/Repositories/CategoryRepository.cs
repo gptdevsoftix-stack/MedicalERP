@@ -19,9 +19,48 @@ namespace MedicalERP.Infrastructure.Repositories
             string? search,
             CancellationToken cancellationToken = default)
         {
+            var query = BuildQuery(companyId, search);
+
+            return await query
+                .Include(x => x.ParentCategory)
+                .OrderBy(x => x.DisplayOrder)
+                .ThenBy(x => x.Name)
+                .ToListAsync(cancellationToken);
+        }
+
+        public Task<int> CountAsync(
+            Guid? companyId,
+            string? search,
+            CancellationToken cancellationToken = default)
+        {
+            return BuildQuery(companyId, search)
+                .CountAsync(cancellationToken);
+        }
+
+        public async Task<List<Category>> GetPagedAsync(
+            Guid? companyId,
+            string? search,
+            int page,
+            int pageSize,
+            CancellationToken cancellationToken = default)
+        {
+            var query = BuildQuery(companyId, search);
+
+            return await query
+                .Include(x => x.ParentCategory)
+                .OrderBy(x => x.DisplayOrder)
+                .ThenBy(x => x.Name)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(cancellationToken);
+        }
+
+        private IQueryable<Category> BuildQuery(
+            Guid? companyId,
+            string? search)
+        {
             var query = _context.Categories
                 .AsNoTracking()
-                .Include(x => x.ParentCategory)
                 .Where(x => !companyId.HasValue || x.CompanyId == companyId.Value);
 
             if (!string.IsNullOrWhiteSpace(search))
@@ -33,10 +72,7 @@ namespace MedicalERP.Infrastructure.Repositories
                     x.Code.Contains(value));
             }
 
-            return await query
-                .OrderBy(x => x.DisplayOrder)
-                .ThenBy(x => x.Name)
-                .ToListAsync(cancellationToken);
+            return query;
         }
 
         public Task<Category?> GetByIdAsync(

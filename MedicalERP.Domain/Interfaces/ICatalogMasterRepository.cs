@@ -11,6 +11,20 @@ public interface ICatalogMasterRepository
         string? search,
         CancellationToken cancellationToken = default);
 
+    Task<int> CountAsync(
+        CatalogMasterType masterType,
+        Guid? companyId,
+        string? search,
+        CancellationToken cancellationToken = default);
+
+    Task<List<CompanyEntity>> GetPagedAsync(
+        CatalogMasterType masterType,
+        Guid? companyId,
+        string? search,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default);
+
     Task<CompanyEntity?> GetByIdAsync(
         CatalogMasterType masterType,
         Guid id,

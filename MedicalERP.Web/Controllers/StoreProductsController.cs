@@ -36,7 +36,9 @@ public sealed class StoreProductsController : Controller
         Guid? storeId,
         Guid? productId,
         string? search,
-        CancellationToken cancellationToken)
+        int page = 1,
+        int pageSize = 25,
+        CancellationToken cancellationToken = default)
     {
         var effectiveStoreId = Request.Query.ContainsKey("storeId") ? storeId : _storeContext.SelectedStoreId;
 
@@ -59,13 +61,23 @@ public sealed class StoreProductsController : Controller
 
         await LoadDropdownsAsync(effectiveStoreId, productId, cancellationToken);
 
-        var records = await _service.GetAsync(
+        var result = await _service.GetPagedAsync(
             effectiveStoreId,
             productId,
             search,
+            page,
+            pageSize,
             cancellationToken);
 
-        return View(records);
+        ViewBag.PaginationRouteValues = new Dictionary<string, object?>
+        {
+            ["storeId"] = effectiveStoreId,
+            ["productId"] = productId,
+            ["search"] = search,
+            ["companyContextId"] = GetCompanyContextId()
+        };
+
+        return View(result);
     }
 
     [HttpGet]

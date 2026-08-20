@@ -1,4 +1,5 @@
 ﻿using MedicalERP.Application.Abstractions.Security;
+using MedicalERP.Application.Common;
 using MedicalERP.Application.Interfaces;
 using MedicalERP.Domain.Catalog;
 using MedicalERP.Domain.Common;
@@ -52,6 +53,42 @@ namespace MedicalERP.Application.Services
                 IsMedicine = x.IsMedicine,
                 IsActive = x.IsActive
             }).ToList();
+        }
+
+        public async Task<PagedResult<ProductListDto>> GetAllPagedAsync(
+            string? search,
+            Guid? categoryId,
+            bool? isMedicine,
+            bool? isActive,
+            int page,
+            int pageSize,
+            CancellationToken cancellationToken = default)
+        {
+            var companyId = _companyContext.CompanyId
+                  ?? throw new UnauthorizedAccessException(
+                      "Company context is missing.");
+
+            var totalCount = await _repository.CountAsync(
+                companyId, search, categoryId, isMedicine, isActive, cancellationToken);
+
+            var products = await _repository.GetPagedAsync(
+                companyId, search, categoryId, isMedicine, isActive, page, pageSize, cancellationToken);
+
+            var items = products.Select(x => new ProductListDto
+            {
+                Id = x.Id,
+                Name = x.Name,
+                Code = x.Code,
+                CategoryName = x.Category.Name,
+                BrandName = x.Brand?.Name,
+                ManufacturerName = x.Manufacturer?.Name,
+                BaseUnitName = x.BaseUnit.Name,
+                ProductType = x.ProductType,
+                IsMedicine = x.IsMedicine,
+                IsActive = x.IsActive
+            }).ToList();
+
+            return new PagedResult<ProductListDto>(items, page, pageSize, totalCount);
         }
 
         public async Task<ProductDetailsDto?> GetByIdAsync(

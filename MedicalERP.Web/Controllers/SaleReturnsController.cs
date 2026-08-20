@@ -17,6 +17,7 @@ public sealed class SaleReturnsController(ISaleReturnService service) : Controll
     {
         var filter = new SaleReturnFilterDto { Search = search, Status = status, Page = page, PageSize = pageSize };
         ViewBag.Search = search; ViewBag.Status = status; ViewBag.CompanyContextId = GetCompanyContextId();
+        ViewBag.PaginationRouteValues = new Dictionary<string, object?> { ["search"] = search, ["status"] = status, ["companyContextId"] = GetCompanyContextId() };
         return View(await service.GetAsync(filter, cancellationToken));
     }
 

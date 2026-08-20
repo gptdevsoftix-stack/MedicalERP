@@ -12,6 +12,18 @@ namespace MedicalERP.Domain.Interfaces
             string? search,
             CancellationToken cancellationToken = default);
 
+        Task<int> CountAsync(
+            Guid? companyId,
+            string? search,
+            CancellationToken cancellationToken = default);
+
+        Task<List<Category>> GetPagedAsync(
+            Guid? companyId,
+            string? search,
+            int page,
+            int pageSize,
+            CancellationToken cancellationToken = default);
+
         Task<Category?> GetByIdAsync(
             Guid id,
             Guid? companyId,

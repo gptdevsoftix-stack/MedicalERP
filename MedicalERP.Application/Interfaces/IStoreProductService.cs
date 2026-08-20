@@ -1,3 +1,4 @@
+using MedicalERP.Application.Common;
 using MedicalERP.Domain.DTOs;
 
 namespace MedicalERP.Application.Interfaces;
@@ -8,6 +9,14 @@ public interface IStoreProductService
         Guid? storeId,
         Guid? productId,
         string? search,
+        CancellationToken cancellationToken = default);
+
+    Task<PagedResult<StoreProductListDto>> GetPagedAsync(
+        Guid? storeId,
+        Guid? productId,
+        string? search,
+        int page,
+        int pageSize,
         CancellationToken cancellationToken = default);
 
     Task<StoreProductFormDto?> GetFormByIdAsync(

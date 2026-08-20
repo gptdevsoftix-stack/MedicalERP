@@ -31,7 +31,9 @@ public sealed class ProductBarcodesController : Controller
     public async Task<IActionResult> Index(
         Guid? productId,
         string? search,
-        CancellationToken cancellationToken)
+        int page = 1,
+        int pageSize = 25,
+        CancellationToken cancellationToken = default)
     {
         ViewBag.ProductId = productId;
         ViewBag.Search = search;
@@ -39,12 +41,21 @@ public sealed class ProductBarcodesController : Controller
 
         await LoadProductsAsync(productId, cancellationToken);
 
-        var records = await _service.GetAsync(
+        var result = await _service.GetPagedAsync(
             productId,
             search,
+            page,
+            pageSize,
             cancellationToken);
 
-        return View(records);
+        ViewBag.PaginationRouteValues = new Dictionary<string, object?>
+        {
+            ["productId"] = productId,
+            ["search"] = search,
+            ["companyContextId"] = GetCompanyContextId()
+        };
+
+        return View(result);
     }
 
     [HttpGet]

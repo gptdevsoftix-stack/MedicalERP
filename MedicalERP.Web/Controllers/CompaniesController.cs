@@ -15,6 +15,10 @@ public sealed class CompaniesController(ICompanyService service) : Controller
     public async Task<IActionResult> Index([FromQuery] QueryParameters query, CancellationToken ct)
     {
         ViewBag.Query = query;
+        ViewBag.PaginationRouteValues = new Dictionary<string, object?>
+        {
+            ["search"] = query.Search
+        };
         try
         {
             return View(await service.GetAsync(query, ct));

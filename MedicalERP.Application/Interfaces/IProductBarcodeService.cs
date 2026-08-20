@@ -1,3 +1,4 @@
+using MedicalERP.Application.Common;
 using MedicalERP.Domain.DTOs;
 
 namespace MedicalERP.Application.Interfaces;
@@ -7,6 +8,13 @@ public interface IProductBarcodeService
     Task<IReadOnlyCollection<ProductBarcodeListDto>> GetAsync(
         Guid? productId,
         string? search,
+        CancellationToken cancellationToken = default);
+
+    Task<PagedResult<ProductBarcodeListDto>> GetPagedAsync(
+        Guid? productId,
+        string? search,
+        int page,
+        int pageSize,
         CancellationToken cancellationToken = default);
 
     Task<ProductBarcodeFormDto?> GetFormByIdAsync(

@@ -10,6 +10,20 @@ public interface IProductBarcodeRepository
         string? search,
         CancellationToken cancellationToken = default);
 
+    Task<int> CountAsync(
+        Guid companyId,
+        Guid? productId,
+        string? search,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyCollection<ProductBarcode>> GetPagedAsync(
+        Guid companyId,
+        Guid? productId,
+        string? search,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default);
+
     Task<ProductBarcode?> GetByIdAsync(
         Guid id,
         Guid companyId,

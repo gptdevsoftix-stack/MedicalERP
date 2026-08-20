@@ -1,4 +1,4 @@
-@model IReadOnlyCollection<object>
+@model PagedResult<object>
 @using MedicalERP.Application.Permissions
 @using MedicalERP.Domain.Common
 @using Microsoft.AspNetCore.Mvc.Rendering
@@ -171,7 +171,7 @@
                 </tr>
             </thead>
             <tbody>
-                @if (Model.Count == 0)
+                @if (Model.Items.Count == 0)
                 {
                     <tr>
                         <td colspan="@(displayFields.Take(7).Count() + 2)" class="text-center text-muted py-4">No records found.</td>
@@ -179,7 +179,7 @@
                 }
                 else
                 {
-                    @foreach (var record in Model)
+                    @foreach (var record in Model.Items)
                     {
                         var entity = (BaseEntity)record;
                         <tr>
@@ -225,3 +225,5 @@
         </table>
     </div>
 </div>
+
+@await Html.PartialAsync("_Pagination", Model)

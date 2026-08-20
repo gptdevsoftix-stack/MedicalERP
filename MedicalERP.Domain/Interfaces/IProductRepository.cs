@@ -16,6 +16,24 @@ namespace MedicalERP.Domain.Interfaces
             bool? isActive,
             CancellationToken cancellationToken = default);
 
+        Task<int> CountAsync(
+            Guid companyId,
+            string? search,
+            Guid? categoryId,
+            bool? isMedicine,
+            bool? isActive,
+            CancellationToken cancellationToken = default);
+
+        Task<List<Product>> GetPagedAsync(
+            Guid companyId,
+            string? search,
+            Guid? categoryId,
+            bool? isMedicine,
+            bool? isActive,
+            int page,
+            int pageSize,
+            CancellationToken cancellationToken = default);
+
         Task<Product?> GetByIdAsync(
             Guid id,
             Guid companyId,

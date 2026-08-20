@@ -20,6 +20,49 @@ public sealed class ProductBarcodeRepository : IProductBarcodeRepository
         string? search,
         CancellationToken cancellationToken = default)
     {
+        var query = BuildQuery(companyId, productId, search);
+
+        return await query
+            .OrderBy(x => x.Product.Name)
+            .ThenByDescending(x => x.IsPrimary)
+            .ThenBy(x => x.Barcode)
+            .ToListAsync(cancellationToken);
+    }
+
+    public Task<int> CountAsync(
+        Guid companyId,
+        Guid? productId,
+        string? search,
+        CancellationToken cancellationToken = default)
+    {
+        return BuildQuery(companyId, productId, search)
+            .CountAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyCollection<ProductBarcode>> GetPagedAsync(
+        Guid companyId,
+        Guid? productId,
+        string? search,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default)
+    {
+        var query = BuildQuery(companyId, productId, search);
+
+        return await query
+            .OrderBy(x => x.Product.Name)
+            .ThenByDescending(x => x.IsPrimary)
+            .ThenBy(x => x.Barcode)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+    }
+
+    private IQueryable<ProductBarcode> BuildQuery(
+        Guid companyId,
+        Guid? productId,
+        string? search)
+    {
         var query = _context.ProductBarcodes
             .AsNoTracking()
             .Include(x => x.Product)
@@ -42,11 +85,7 @@ public sealed class ProductBarcodeRepository : IProductBarcodeRepository
                 x.Product.Code.Contains(value));
         }
 
-        return await query
-            .OrderBy(x => x.Product.Name)
-            .ThenByDescending(x => x.IsPrimary)
-            .ThenBy(x => x.Barcode)
-            .ToListAsync(cancellationToken);
+        return query;
     }
 
     public Task<ProductBarcode?> GetByIdAsync(

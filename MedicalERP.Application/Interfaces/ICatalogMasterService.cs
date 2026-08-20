@@ -1,3 +1,4 @@
+using MedicalERP.Application.Common;
 using MedicalERP.Domain.DTOs;
 using MedicalERP.Domain.Enums;
 
@@ -8,6 +9,13 @@ public interface ICatalogMasterService
     Task<List<CatalogMasterDto>> GetAllAsync(
         CatalogMasterType masterType,
         string? search,
+        CancellationToken cancellationToken = default);
+
+    Task<PagedResult<CatalogMasterDto>> GetAllPagedAsync(
+        CatalogMasterType masterType,
+        string? search,
+        int page,
+        int pageSize,
         CancellationToken cancellationToken = default);
 
     Task<CatalogMasterDto?> GetByIdAsync(

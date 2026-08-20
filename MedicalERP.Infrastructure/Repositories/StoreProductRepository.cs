@@ -21,6 +21,50 @@ public sealed class StoreProductRepository : IStoreProductRepository
         string? search,
         CancellationToken cancellationToken = default)
     {
+        var query = BuildQuery(companyId, storeId, productId, search);
+
+        return await query
+            .OrderBy(x => x.Store == null ? string.Empty : x.Store.Name)
+            .ThenBy(x => x.Product.Name)
+            .ToListAsync(cancellationToken);
+    }
+
+    public Task<int> CountAsync(
+        Guid companyId,
+        Guid? storeId,
+        Guid? productId,
+        string? search,
+        CancellationToken cancellationToken = default)
+    {
+        return BuildQuery(companyId, storeId, productId, search)
+            .CountAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyCollection<StoreProduct>> GetPagedAsync(
+        Guid companyId,
+        Guid? storeId,
+        Guid? productId,
+        string? search,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default)
+    {
+        var query = BuildQuery(companyId, storeId, productId, search);
+
+        return await query
+            .OrderBy(x => x.Store == null ? string.Empty : x.Store.Name)
+            .ThenBy(x => x.Product.Name)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+    }
+
+    private IQueryable<StoreProduct> BuildQuery(
+        Guid companyId,
+        Guid? storeId,
+        Guid? productId,
+        string? search)
+    {
         var query = _context.StoreProducts
             .AsNoTracking()
             .Include(x => x.Store)
@@ -47,10 +91,7 @@ public sealed class StoreProductRepository : IStoreProductRepository
                 (x.Store != null && x.Store.Name.Contains(value)));
         }
 
-        return await query
-            .OrderBy(x => x.Store == null ? string.Empty : x.Store.Name)
-            .ThenBy(x => x.Product.Name)
-            .ToListAsync(cancellationToken);
+        return query;
     }
 
     public Task<StoreProduct?> GetByIdAsync(

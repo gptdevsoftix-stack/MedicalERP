@@ -17,6 +17,7 @@ public sealed class SalesController(ISaleService service) : Controller
     {
         var filter = new SaleFilterDto { Search = search, Status = status, PaymentStatus = paymentStatus, Page = page, PageSize = pageSize };
         ViewBag.Search = search; ViewBag.Status = status; ViewBag.PaymentStatus = paymentStatus; ViewBag.CompanyContextId = GetCompanyContextId();
+        ViewBag.PaginationRouteValues = new Dictionary<string, object?> { ["search"] = search, ["status"] = status, ["paymentStatus"] = paymentStatus, ["companyContextId"] = GetCompanyContextId() };
         return View(await service.GetAsync(filter, cancellationToken));
     }
 

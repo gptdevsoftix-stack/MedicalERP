@@ -26,12 +26,61 @@ namespace MedicalERP.Infrastructure.Repositories
             bool? isActive,
             CancellationToken cancellationToken = default)
         {
-            var query = _context.Products
-                .AsNoTracking()
+            var query = BuildQuery(companyId, search, categoryId, isMedicine, isActive);
+
+            return await query
                 .Include(x => x.Category)
                 .Include(x => x.Brand)
                 .Include(x => x.Manufacturer)
                 .Include(x => x.BaseUnit)
+                .OrderBy(x => x.Name)
+                .ToListAsync(cancellationToken);
+        }
+
+        public Task<int> CountAsync(
+            Guid companyId,
+            string? search,
+            Guid? categoryId,
+            bool? isMedicine,
+            bool? isActive,
+            CancellationToken cancellationToken = default)
+        {
+            return BuildQuery(companyId, search, categoryId, isMedicine, isActive)
+                .CountAsync(cancellationToken);
+        }
+
+        public async Task<List<Product>> GetPagedAsync(
+            Guid companyId,
+            string? search,
+            Guid? categoryId,
+            bool? isMedicine,
+            bool? isActive,
+            int page,
+            int pageSize,
+            CancellationToken cancellationToken = default)
+        {
+            var query = BuildQuery(companyId, search, categoryId, isMedicine, isActive);
+
+            return await query
+                .Include(x => x.Category)
+                .Include(x => x.Brand)
+                .Include(x => x.Manufacturer)
+                .Include(x => x.BaseUnit)
+                .OrderBy(x => x.Name)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(cancellationToken);
+        }
+
+        private IQueryable<Product> BuildQuery(
+            Guid companyId,
+            string? search,
+            Guid? categoryId,
+            bool? isMedicine,
+            bool? isActive)
+        {
+            var query = _context.Products
+                .AsNoTracking()
                 .Where(x => x.CompanyId == companyId);
 
             if (!string.IsNullOrWhiteSpace(search))
@@ -63,9 +112,7 @@ namespace MedicalERP.Infrastructure.Repositories
                     x.IsActive == isActive.Value);
             }
 
-            return await query
-                .OrderBy(x => x.Name)
-                .ToListAsync(cancellationToken);
+            return query;
         }
 
         public Task<Product?> GetByIdAsync(

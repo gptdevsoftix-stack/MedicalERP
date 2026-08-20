@@ -16,6 +16,11 @@ public sealed class WarehousesController(IWarehouseService service, IStoreServic
     public async Task<IActionResult> Index([FromQuery] Guid? storeId, [FromQuery] QueryParameters query, CancellationToken ct)
     {
         ViewBag.Query = query;
+        ViewBag.PaginationRouteValues = new Dictionary<string, object?>
+        {
+            ["search"] = query.Search,
+            ["storeId"] = storeId
+        };
         return View(await service.GetAsync(storeId, query, ct));
     }
 
