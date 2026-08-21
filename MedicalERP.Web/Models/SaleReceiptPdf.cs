@@ -9,7 +9,7 @@ public static class SaleReceiptPdf
 {
     static SaleReceiptPdf() => QuestPDF.Settings.License = LicenseType.Community;
 
-    public static byte[] Build(SaleFormDto model, string companyName = "MEDICALERP PHARMACY")
+    public static byte[] Build(SaleFormDto model, string companyName = "MEDICALERP PHARMACY", string companyAddress = "")
     {
         var discount = model.ItemDiscount + model.InvoiceDiscount;
         var pageHeight = Math.Max(150, 118 + model.Items.Count * 9);
@@ -23,7 +23,7 @@ public static class SaleReceiptPdf
                 col.Spacing(2);
                 col.Item().AlignCenter().Text(companyName.ToUpperInvariant()).FontFamily("Times New Roman").FontSize(15).Bold();
                 col.Item().AlignCenter().Text("(Pharmacy)").FontFamily("Times New Roman").FontSize(11).Bold();
-                col.Item().AlignCenter().Text("Quality medicines & healthcare services").FontSize(6.5f);
+                col.Item().AlignCenter().Text(companyAddress).FontSize(6.5f);
                 col.Item().Background(Colors.Black).PaddingVertical(1).AlignCenter().Text("SALE RECEIPT").FontColor(Colors.White).Bold();
 
                 col.Item().Row(row => { row.RelativeItem().Text($"Bill No: {model.InvoiceNumber}").Bold(); row.AutoItem().Text("Original").Bold(); });

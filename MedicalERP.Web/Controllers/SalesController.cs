@@ -1,4 +1,5 @@
 using MedicalERP.Application.Interfaces;
+using MedicalERP.Application.Abstractions.Security;
 using MedicalERP.Application.Permissions;
 using MedicalERP.Application.Sales.Dtos;
 using MedicalERP.Domain.Enums;
@@ -10,7 +11,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 namespace MedicalERP.Web.Controllers;
 
 [Authorize]
-public sealed class SalesController(ISaleService service) : Controller
+public sealed class SalesController(ISaleService service, ICompanyService companyService, ICompanyContext companyContext) : Controller
 {
     [HttpGet, HasPermission(Permissions.Sales.View)]
     public async Task<IActionResult> Index(string? search, SaleStatus? status, PaymentStatus? paymentStatus, int page = 1, int pageSize = 25, CancellationToken cancellationToken = default)
@@ -82,7 +83,9 @@ public sealed class SalesController(ISaleService service) : Controller
     public async Task<IActionResult> Receipt(Guid id, CancellationToken cancellationToken)
     {
         var model = await service.GetDetailsAsync(id, cancellationToken);
-        return model is null ? NotFound() : View(model);
+        if (model is null) return NotFound();
+        ViewBag.CompanyAddress = await GetCompanyAddressAsync(cancellationToken);
+        return View(model);
     }
 
     [HttpGet, HasPermission(Permissions.Sales.View)]
@@ -91,7 +94,8 @@ public sealed class SalesController(ISaleService service) : Controller
         var model = await service.GetDetailsAsync(id, cancellationToken);
         if (model is null) return NotFound();
         var companyName = User.FindFirst("company_name")?.Value ?? "MEDICALERP PHARMACY";
-        var bytes = Models.SaleReceiptPdf.Build(model, companyName);
+        var companyAddress = await GetCompanyAddressAsync(cancellationToken);
+        var bytes = Models.SaleReceiptPdf.Build(model, companyName, companyAddress);
         return File(bytes, "application/pdf", $"Receipt-{model.InvoiceNumber}.pdf");
     }
 
@@ -108,4 +112,12 @@ public sealed class SalesController(ISaleService service) : Controller
     }
 
     private string? GetCompanyContextId() => Request.Query["companyContextId"].FirstOrDefault();
+
+    private async Task<string> GetCompanyAddressAsync(CancellationToken cancellationToken)
+    {
+        if (!companyContext.CompanyId.HasValue) return string.Empty;
+        var company = await companyService.GetByIdAsync(companyContext.CompanyId.Value, cancellationToken);
+        return string.Join(", ", new[] { company.Address, company.City, company.State, company.Country }
+            .Where(x => !string.IsNullOrWhiteSpace(x)));
+    }
 }

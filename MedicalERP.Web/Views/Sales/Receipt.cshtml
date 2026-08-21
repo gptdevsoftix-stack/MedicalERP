@@ -4,6 +4,7 @@
 @{
     ViewData["Title"] = $"Receipt - {Model.InvoiceNumber}";
     var companyName = User.FindFirst("company_name")?.Value ?? "MEDICALERP PHARMACY";
+    var companyAddress = ViewBag.CompanyAddress as string ?? string.Empty;
     var customerName = Model.CustomerName ?? "Cash Sale Walk-in Customer";
     var totalDiscount = Model.ItemDiscount + Model.InvoiceDiscount;
     var itemCount = Model.Items.Sum(x => x.Quantity);
@@ -23,7 +24,7 @@
         <header class="thermal-header">
             <h1>@companyName</h1>
             <strong>(Pharmacy)</strong>
-            <p>Quality medicines &amp; healthcare services</p>
+            <p>@companyAddress</p>
         </header>
 
         <div class="title-strip">Sale Receipt</div>
