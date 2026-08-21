@@ -5,6 +5,7 @@ using MedicalERP.Application.Permissions;
 using MedicalERP.Application.Purchases.Dtos;
 using MedicalERP.Application.Warehouses.Dtos;
 using MedicalERP.Domain.Enums;
+using MedicalERP.Domain.DTOs;
 using MedicalERP.Web.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -17,6 +18,8 @@ public sealed class PurchaseOrdersController(
     IPurchaseOrderService service,
     ISupplierService supplierService,
     IWarehouseService warehouseService,
+    IProductService productService,
+    IProductUnitService productUnitService,
     IStoreContext storeContext) : Controller
 {
     [HttpGet, HasPermission(Permissions.Purchases.View)]
@@ -177,6 +180,40 @@ public sealed class PurchaseOrdersController(
             return Ok(ApiResponse<object>.Ok(new { id = result.Id, name = displayName }));
         }
         catch (InvalidOperationException ex)
+        {
+            return BadRequest(ApiResponse<object>.Fail(ex.Message));
+        }
+    }
+
+    [HttpGet("PurchaseOrders/QuickCreateProductUnit")]
+    [HasPermission(Permissions.Purchases.Create)]
+    public async Task<IActionResult> QuickCreateProductUnit(Guid productId, CancellationToken cancellationToken)
+    {
+        if (productId == Guid.Empty) return BadRequest();
+        ViewBag.Units = new SelectList(await productService.GetUnitsAsync(cancellationToken), "Id", "Name");
+        return PartialView("~/Views/PurchaseOrders/_QuickCreateProductUnit.cshtml", new ProductUnitFormDto
+        {
+            ProductId = productId,
+            ConversionFactor = 1,
+            IsPurchaseUnit = true,
+            IsActive = true
+        });
+    }
+
+    [HttpPost("PurchaseOrders/QuickCreateProductUnit")]
+    [IgnoreAntiforgeryToken]
+    [HasPermission(Permissions.Purchases.Create)]
+    public async Task<IActionResult> QuickCreateProductUnit([FromBody] ProductUnitFormDto request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            request.IsPurchaseUnit = true;
+            request.IsActive = true;
+            var id = await productUnitService.CreateAsync(request, cancellationToken);
+            var created = (await productUnitService.GetByProductIdAsync(request.ProductId, cancellationToken)).Single(x => x.Id == id);
+            return Ok(ApiResponse<object>.Ok(new { id, name = $"{created.UnitName} x {created.ConversionFactor:0.####}" }));
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or KeyNotFoundException)
         {
             return BadRequest(ApiResponse<object>.Fail(ex.Message));
         }

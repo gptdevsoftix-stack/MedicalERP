@@ -93,7 +93,8 @@
                                 <path fill-rule="evenodd" clip-rule="evenodd" d="M7.77 16.36L23.66 0H32V6.88C32 6.88 31.83 9.18 30.66 10.41L19.78 22H13.69L7.77 16.36Z" fill="#7367F0" />
                             </svg>
                         </span>
-                        <span class="app-brand-text demo menu-text fw-bold">
+                        <span class="app-brand-text demo menu-text fw-bold company-brand-name"
+                              title="@(string.IsNullOrWhiteSpace(companyName) ? "MedicalERP" : companyName)">
                             @if (!string.IsNullOrEmpty(companyName))
                             {
                                 @companyName

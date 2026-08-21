@@ -1,8 +1,10 @@
 using MedicalERP.Application.Interfaces;
 using MedicalERP.Application.Abstractions.Security;
+using MedicalERP.Application.Common;
 using MedicalERP.Application.Permissions;
 using MedicalERP.Application.Sales.Dtos;
 using MedicalERP.Domain.Enums;
+using MedicalERP.Domain.DTOs;
 using MedicalERP.Web.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,7 +13,12 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 namespace MedicalERP.Web.Controllers;
 
 [Authorize]
-public sealed class SalesController(ISaleService service, ICompanyService companyService, ICompanyContext companyContext) : Controller
+public sealed class SalesController(
+    ISaleService service,
+    ICompanyService companyService,
+    ICompanyContext companyContext,
+    IProductService productService,
+    IProductUnitService productUnitService) : Controller
 {
     [HttpGet, HasPermission(Permissions.Sales.View)]
     public async Task<IActionResult> Index(string? search, SaleStatus? status, PaymentStatus? paymentStatus, int page = 1, int pageSize = 25, CancellationToken cancellationToken = default)
@@ -101,6 +108,40 @@ public sealed class SalesController(ISaleService service, ICompanyService compan
 
     [HttpGet, HasPermission(Permissions.Sales.View)]
     public async Task<IActionResult> ProductUnits(Guid productId, CancellationToken cancellationToken) => Json(await service.GetProductUnitsAsync(productId, cancellationToken));
+
+    [HttpGet("Sales/QuickCreateProductUnit")]
+    [HasPermission(Permissions.Sales.Create)]
+    public async Task<IActionResult> QuickCreateProductUnit(Guid productId, CancellationToken cancellationToken)
+    {
+        if (productId == Guid.Empty) return BadRequest();
+        ViewBag.Units = new SelectList(await productService.GetUnitsAsync(cancellationToken), "Id", "Name");
+        return PartialView("~/Views/PurchaseOrders/_QuickCreateProductUnit.cshtml", new ProductUnitFormDto
+        {
+            ProductId = productId,
+            ConversionFactor = 1,
+            IsSaleUnit = true,
+            IsActive = true
+        });
+    }
+
+    [HttpPost("Sales/QuickCreateProductUnit")]
+    [IgnoreAntiforgeryToken]
+    [HasPermission(Permissions.Sales.Create)]
+    public async Task<IActionResult> QuickCreateProductUnit([FromBody] ProductUnitFormDto request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            request.IsSaleUnit = true;
+            request.IsActive = true;
+            var id = await productUnitService.CreateAsync(request, cancellationToken);
+            var created = (await productUnitService.GetByProductIdAsync(request.ProductId, cancellationToken)).Single(x => x.Id == id);
+            return Ok(ApiResponse<object>.Ok(new { id, name = $"{created.UnitName} x {created.ConversionFactor:0.####}" }));
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or KeyNotFoundException)
+        {
+            return BadRequest(ApiResponse<object>.Fail(ex.Message));
+        }
+    }
 
     private async Task LoadLookupsAsync(SaleFormDto model, CancellationToken cancellationToken)
     {

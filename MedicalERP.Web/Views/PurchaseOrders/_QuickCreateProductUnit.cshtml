@@ -1,0 +1,21 @@
+@model MedicalERP.Domain.DTOs.ProductUnitFormDto
+
+<form id="quick-create-product-unit-form">
+    <input type="hidden" id="qcpu-product-id" value="@Model.ProductId" />
+    <div class="alert alert-danger d-none" role="alert"></div>
+    <div class="mb-3">
+        <label for="qcpu-unit-id" class="form-label"><span class="text-danger">*</span> Unit</label>
+        <select id="qcpu-unit-id" asp-items="ViewBag.Units" class="form-select" required>
+            <option value="">Select unit</option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <label for="qcpu-conversion" class="form-label"><span class="text-danger">*</span> Conversion Factor</label>
+        <input id="qcpu-conversion" type="number" min="0.0001" step="0.0001" value="1" class="form-control" required />
+        <div class="form-text">Number of base units contained in this unit.</div>
+    </div>
+    <div class="d-flex justify-content-end gap-2">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-primary"><i class="ti ti-plus me-1"></i>Create</button>
+    </div>
+</form>

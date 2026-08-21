@@ -1,7 +1,26 @@
 :root { --medicalerp-accent: #7367f0; }
 body { font-family: "Public Sans", sans-serif; }
 .app-brand-text { color: #4b465c; letter-spacing: 0; }
-.menu .app-brand.demo { height: 64px; }
+.menu .app-brand.demo { height: 72px; }
+.menu .app-brand.demo .app-brand-link {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+.menu .company-brand-name {
+    display: -webkit-box;
+    min-width: 0;
+    max-width: 155px;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    white-space: normal;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    font-size: .95rem;
+    line-height: 1.15;
+}
+.menu .layout-menu-toggle {
+    flex: 0 0 auto;
+}
 .container-p-y { padding-top: 1.5rem !important; padding-bottom: 1.5rem !important; }
 .medical-page-title { margin-bottom: 1.25rem; }
 .medical-page-title h1 { font-size: 1.5rem; margin: 0; color: #4b465c; }

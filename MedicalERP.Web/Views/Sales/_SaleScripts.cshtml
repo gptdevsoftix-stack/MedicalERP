@@ -142,7 +142,10 @@
                     <button type="button" class="btn btn-sm btn-icon btn-outline-danger remove-line" title="Remove line"><i class="ti ti-x"></i></button>
                 </div>
                 <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
-                    <select name="Items[${i}].ProductUnitId" data-field="ProductUnitId" class="form-select form-select-sm" style="max-width:32%" title="Unit"><option value="">Select unit</option></select>
+                    <div class="input-group input-group-sm" style="max-width:38%">
+                        <select name="Items[${i}].ProductUnitId" data-field="ProductUnitId" class="form-select" title="Unit"><option value="">Select unit</option></select>
+                        <button type="button" class="btn btn-outline-primary quick-add-unit" title="Add unit"><i class="ti ti-plus"></i></button>
+                    </div>
                     <div class="input-group input-group-sm qty-stepper" style="width:118px">
                         <button type="button" class="btn btn-outline-secondary qty-minus" title="Decrease"><i class="ti ti-minus"></i></button>
                         <input name="Items[${i}].Quantity" data-field="Quantity" value="${item?.Quantity ?? 1}" type="number" min="0.0001" step="1" class="form-control text-center" title="Quantity" />
@@ -375,6 +378,60 @@
     const appModal = document.getElementById('appModal');
     const appModalBody = document.getElementById('appModalBody');
     const appModalTitle = appModal?.querySelector('.modal-title');
+
+    body.addEventListener('click', e => {
+        const button = e.target.closest('.quick-add-unit');
+        if (!button) return;
+        const row = button.closest('tr');
+        const productId = row?.querySelector('[data-field="ProductId"]')?.value;
+        if (!productId) return;
+
+        fetch(`/Sales/QuickCreateProductUnit?productId=${encodeURIComponent(productId)}`)
+            .then(r => { if (!r.ok) throw new Error('Failed to load form'); return r.text(); })
+            .then(html => {
+                if (appModalBody) appModalBody.innerHTML = html;
+                if (appModalTitle) appModalTitle.textContent = 'Add Product Unit';
+                const bsModal = new bootstrap.Modal(appModal);
+                bsModal.show();
+                const quickForm = document.getElementById('quick-create-product-unit-form');
+                quickForm?.addEventListener('submit', event => {
+                    event.preventDefault();
+                    if (!quickForm.reportValidity()) return;
+                    const submitBtn = quickForm.querySelector('[type="submit"]');
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Creating...';
+                    fetch('/Sales/QuickCreateProductUnit', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            productId,
+                            unitId: document.getElementById('qcpu-unit-id')?.value,
+                            conversionFactor: +(document.getElementById('qcpu-conversion')?.value || 1),
+                            isSaleUnit: true,
+                            isActive: true
+                        })
+                    })
+                    .then(async r => ({ ok: r.ok, data: await r.json() }))
+                    .then(result => {
+                        if (!result.ok || !result.data.success || !result.data.data) throw new Error(result.data.message || 'Failed to create unit.');
+                        const unitSelect = row.querySelector('[data-field="ProductUnitId"]');
+                        unitSelect.add(new Option(result.data.data.name, result.data.data.id, true, true));
+                        clearRowError(row);
+                        markDirty();
+                        bsModal.hide();
+                        if (typeof common !== 'undefined') common.successToast('Product unit created.');
+                    })
+                    .catch(error => {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<i class="ti ti-plus me-1"></i>Create';
+                        const errorBox = quickForm.querySelector('.alert-danger');
+                        errorBox.textContent = error.message || 'Failed to create unit.';
+                        errorBox.classList.remove('d-none');
+                    });
+                });
+            })
+            .catch(() => { if (typeof common !== 'undefined') common.dangerToast('Failed to load unit form.'); });
+    });
 
     btnQuickCreate?.addEventListener('click', () => {
         fetch('/Customers/QuickCreate')
