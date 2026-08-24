@@ -1,6 +1,31 @@
 (() => {
     const storageKey = "medicalerp-theme";
 
+    window.medicalToast = function (type, message) {
+        if (!message) return;
+        const container = document.getElementById("app-toast-container");
+        if (!container || typeof bootstrap === "undefined") return;
+
+        const styles = {
+            success: { css: "text-bg-success", icon: "ti-circle-check", title: "Success" },
+            error: { css: "text-bg-danger", icon: "ti-alert-circle", title: "Error" },
+            warning: { css: "text-bg-warning", icon: "ti-alert-triangle", title: "Warning" },
+            info: { css: "text-bg-info", icon: "ti-info-circle", title: "Information" }
+        };
+        const style = styles[type] || styles.info;
+        const toast = document.createElement("div");
+        toast.className = `toast ${style.css} border-0`;
+        toast.setAttribute("role", "alert");
+        toast.setAttribute("aria-live", type === "error" ? "assertive" : "polite");
+        toast.setAttribute("aria-atomic", "true");
+        toast.innerHTML = `<div class="d-flex"><div class="toast-body"><i class="ti ${style.icon} me-2"></i><strong>${style.title}:</strong> <span></span></div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
+        toast.querySelector("span").textContent = message;
+        container.appendChild(toast);
+        const instance = new bootstrap.Toast(toast, { delay: type === "error" ? 7000 : 4500 });
+        toast.addEventListener("hidden.bs.toast", () => toast.remove());
+        instance.show();
+    };
+
     function getStoredTheme() {
         const storedTheme = localStorage.getItem(storageKey);
 
@@ -42,6 +67,20 @@
     applyTheme(getStoredTheme());
 
     document.addEventListener("DOMContentLoaded", () => {
+        const toastData = document.getElementById("server-toast-data");
+        if (toastData) {
+            try {
+                const messages = JSON.parse(toastData.textContent);
+                ["success", "error", "warning"].forEach(type => window.medicalToast(type, messages[type]));
+            } catch { /* Invalid toast data must never stop the page. */ }
+        }
+
+        if (window.jQuery) {
+            $(document).ajaxError((_, response) => {
+                const message = response.responseJSON?.detail || response.responseJSON?.message || "The action failed. Please try again.";
+                window.medicalToast("error", message);
+            });
+        }
         const selector = document.getElementById("theme-selector");
 
         if (selector) {

@@ -18,9 +18,11 @@ public sealed class StoresController(IStoreService service, ICompanyService comp
     public async Task<IActionResult> Index([FromQuery] QueryParameters query, CancellationToken ct)
     {
         ViewBag.Query = query;
+        ViewBag.CompanyContextId = Request.Query["companyContextId"].FirstOrDefault();
         ViewBag.PaginationRouteValues = new Dictionary<string, object?>
         {
-            ["search"] = query.Search
+            ["search"] = query.Search,
+            ["companyContextId"] = ViewBag.CompanyContextId
         };
         return View(await service.GetAsync(query, ct));
     }

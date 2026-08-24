@@ -13,6 +13,8 @@ public sealed class StoreService(IStoreRepository stores, ICompanyContext compan
     {
         var allowedStores = storeContext.AllowedStoreIds;
         var source = stores.Query().Where(x => allowedStores.Count == 0 || allowedStores.Contains(x.Id));
+        var companyId = companyContext.CompanyId;
+        if (companyId.HasValue) source = source.Where(x => x.CompanyId == companyId.Value);
         if (!string.IsNullOrWhiteSpace(query.Search)) source = source.Where(x => x.Name.Contains(query.Search) || x.Code.Contains(query.Search));
         var total = source.Count();
         var items = source.OrderBy(x => x.Name).Skip((query.Page - 1) * query.PageSize).Take(query.PageSize).Select(x => Map(x)).ToList();

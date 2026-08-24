@@ -5,6 +5,7 @@ using MedicalERP.Application.Permissions;
 using MedicalERP.Web.Authorization;
 using MedicalERP.Web.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace MedicalERP.Web.Controllers;
 
@@ -28,6 +29,19 @@ public sealed class CompaniesController(ICompanyService service) : Controller
             ViewBag.Warning = ex.Message;
             return View(new PagedResult<CompanyDto>([], query.Page, query.PageSize, 0));
         }
+    }
+
+    [Authorize]
+    [HttpGet("/Companies/GetAllCompanies")]
+    public async Task<IActionResult> GetAllCompanies(CancellationToken ct)
+    {
+        var result = await service.GetAsync(new QueryParameters { PageSize = 500 }, ct);
+        return Ok(result.Items.Where(x => x.IsActive).Select(x => new
+        {
+            companyId = x.Id,
+            companyName = x.Name,
+            companyCode = x.Code
+        }));
     }
 
     [HttpGet("/Companies/Create")]

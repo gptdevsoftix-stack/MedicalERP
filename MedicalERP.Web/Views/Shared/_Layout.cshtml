@@ -1,11 +1,14 @@
 ﻿@using System.Security.Claims
 @using MedicalERP.Application.Permissions
+@using System.Text.Json
 @{
     var currentPath = Context.Request.Path.Value ?? "/";
-    var companyContextId = Context.Request.Query["companyContextId"].FirstOrDefault();
+    var companyContextId = Context.Request.Query["companyContextId"].FirstOrDefault()
+        ?? Context.Request.Cookies["SelectedCompanyId"];
     var userName = User.Identity?.IsAuthenticated == true ? User.Identity.Name : "Guest";
     var companyName = User.FindFirst("company_name")?.Value;
     var userRoles = User.FindAll(ClaimTypes.Role).Select(r => r.Value).ToArray();
+    var isPlatformAdmin = string.Equals(User.FindFirst("is_platform_admin")?.Value, "true", StringComparison.OrdinalIgnoreCase);
     var avatarUrl = $"https://api.dicebear.com/6.x/initials/svg?seed={Uri.EscapeDataString(userName ?? "MedicalERP")}";
     bool HasPermission(string permission) => User.HasClaim(PermissionClaimTypes.Permission, permission);
     var canViewCompanies = HasPermission(Permissions.Companies.View);
@@ -19,6 +22,13 @@
     var canViewUsers = HasPermission(Permissions.Users.View);
     var canViewRoles = HasPermission(Permissions.Roles.View);
     var canViewCatalog = canViewCategories || canViewProducts;
+    var toastSuccess = TempData["SuccessMessage"]?.ToString();
+    var toastError = TempData["ErrorMessage"]?.ToString();
+    var toastWarning = TempData["WarningMessage"]?.ToString();
+    var validationError = ViewData.ModelState.Values
+        .SelectMany(value => value.Errors)
+        .Select(error => string.IsNullOrWhiteSpace(error.ErrorMessage) ? error.Exception?.Message : error.ErrorMessage)
+        .FirstOrDefault(message => !string.IsNullOrWhiteSpace(message));
     var catalogActive = currentPath.Contains("/Products")
         || currentPath.Contains("/Categories")
         || currentPath.Contains("/ProductBarcodes")
@@ -124,7 +134,7 @@
                     @if (canViewStores)
                     {
                         <li class="menu-item@(currentPath.Contains("/Stores") ? " active" : "")">
-                            <a asp-controller="Stores" asp-action="Index" class="menu-link"><i class="menu-icon tf-icons ti ti-building-store"></i><div>Stores</div></a>
+                            <a asp-controller="Stores" asp-action="Index" asp-route-companyContextId="@companyContextId" class="menu-link"><i class="menu-icon tf-icons ti ti-building-store"></i><div>Stores</div></a>
                         </li>
                     }
                     @if (canViewCatalog)
@@ -276,6 +286,14 @@
                             </div>
                         </div>
                         <ul class="navbar-nav flex-row align-items-center ms-auto">
+                            @if (isPlatformAdmin)
+                            {
+                                <li class="nav-item me-2">
+                                    <select id="companyDropdown" class="form-select form-select-sm" aria-label="Select company" data-selected-company-id="@companyContextId">
+                                        <option value="">Select Company</option>
+                                    </select>
+                                </li>
+                            }
                             <li class="nav-item me-3">
                                 <select id="storeDropdown"
                                         class="form-select form-select-sm"
@@ -326,8 +344,10 @@
                 </div>
             </div>
         </div>
-        <div class="layout-overlay layout-menu-toggle"></div>
-        <div class="drag-target"></div>
+    <div class="layout-overlay layout-menu-toggle"></div>
+    <div class="drag-target"></div>
+    <div id="app-toast-container" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1095"></div>
+    <script id="server-toast-data" type="application/json">@Html.Raw(JsonSerializer.Serialize(new { success = toastSuccess, error = toastError ?? validationError, warning = toastWarning }))</script>
     </div>
 
     <script src="~/assets/vendor/libs/jquery/jquery.js"></script>

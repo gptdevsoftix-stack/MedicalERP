@@ -80,6 +80,7 @@ public sealed class CompanyContext(IHttpContextAccessor accessor, ICurrentUserSe
             var raw = http?.Request.Headers["X-Company-Id"].FirstOrDefault();
             if (string.IsNullOrWhiteSpace(raw)) raw = http?.Request.Query["companyContextId"].FirstOrDefault();
             if (string.IsNullOrWhiteSpace(raw) && http?.Request.HasFormContentType == true) raw = http.Request.Form["companyContextId"].FirstOrDefault();
+            if (string.IsNullOrWhiteSpace(raw)) raw = http?.Request.Cookies["SelectedCompanyId"];
             return Guid.TryParse(raw, out var id) ? id : null;
         }
     }
