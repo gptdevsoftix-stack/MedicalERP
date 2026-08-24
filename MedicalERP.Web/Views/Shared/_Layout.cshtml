@@ -48,6 +48,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
     <title>@ViewData["Title"] - MedicalERP</title>
 
+    <script>
+        // Apply the saved theme before styles are rendered to prevent a light-theme flash.
+        (() => {
+            const theme = localStorage.getItem('medicalerp-theme') === 'dark' ? 'dark' : 'light';
+            const root = document.documentElement;
+            root.classList.toggle('dark-style', theme === 'dark');
+            root.classList.toggle('light-style', theme !== 'dark');
+            root.setAttribute('data-bs-theme', theme);
+            root.style.colorScheme = theme;
+        })();
+    </script>
+
     <link rel="icon" type="image/x-icon" href="~/assets/img/favicon/favicon.ico" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -68,6 +80,13 @@
           data-light-href="@Url.Content("~/assets/vendor/css/rtl/theme-default.css")"
           data-dark-href="@Url.Content("~/assets/vendor/css/rtl/theme-default-dark.css")"
           class="template-customizer-theme-css" />
+    <script>
+        (() => {
+            if (localStorage.getItem('medicalerp-theme') !== 'dark') return;
+            document.getElementById('template-core-css').href = '@Url.Content("~/assets/vendor/css/rtl/core-dark.css")';
+            document.getElementById('template-theme-css').href = '@Url.Content("~/assets/vendor/css/rtl/theme-default-dark.css")';
+        })();
+    </script>
     <link rel="stylesheet" href="~/assets/css/demo.css" />
     <link rel="stylesheet" href="~/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
     <link rel="stylesheet" href="~/assets/vendor/libs/node-waves/node-waves.css" />
