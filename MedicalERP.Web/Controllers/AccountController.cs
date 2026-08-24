@@ -1,14 +1,17 @@
 using MedicalERP.Infrastructure.Identity;
+using MedicalERP.Infrastructure.Persistence;
 using MedicalERP.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace MedicalERP.Web.Controllers;
 
 public sealed class AccountController(
     UserManager<ApplicationUser> userManager,
-    SignInManager<ApplicationUser> signInManager) : Controller
+    SignInManager<ApplicationUser> signInManager,
+    ApplicationDbContext db) : Controller
 {
     [HttpGet]
     [AllowAnonymous]
@@ -41,6 +44,31 @@ public sealed class AccountController(
 
         user.LastLoginAt = DateTime.UtcNow;
         await userManager.UpdateAsync(user);
+
+        var defaultStoreId = await db.UserStoreAccesses
+            .AsNoTracking()
+            .IgnoreQueryFilters()
+            .Where(x => x.UserId == user.Id && x.IsActive)
+            .OrderByDescending(x => x.IsDefaultStore)
+            .Select(x => (Guid?)x.StoreId)
+            .FirstOrDefaultAsync();
+
+        if (defaultStoreId.HasValue)
+        {
+            Response.Cookies.Append("SelectedStoreId", defaultStoreId.Value.ToString(), new CookieOptions
+            {
+                HttpOnly = false,
+                IsEssential = true,
+                SameSite = SameSiteMode.Lax,
+                Secure = Request.IsHttps,
+                Path = "/"
+            });
+        }
+        else
+        {
+            Response.Cookies.Delete("SelectedStoreId");
+        }
+
         return RedirectToLocal(model.ReturnUrl);
     }
 

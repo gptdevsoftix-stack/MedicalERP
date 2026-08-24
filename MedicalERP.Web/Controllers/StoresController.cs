@@ -1,5 +1,6 @@
 using MedicalERP.Application.Interfaces;
 using MedicalERP.Application.Common;
+using MedicalERP.Application.Abstractions.Security;
 using MedicalERP.Application.Permissions;
 using MedicalERP.Application.Stores.Dtos;
 using MedicalERP.Web.Authorization;
@@ -11,7 +12,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 namespace MedicalERP.Web.Controllers;
 
 [Route("api/stores")]
-public sealed class StoresController(IStoreService service, ICompanyService companies) : Controller
+public sealed class StoresController(IStoreService service, ICompanyService companies, IStoreContext storeContext) : Controller
 {
     [HttpGet("/Stores")]
     public async Task<IActionResult> Index([FromQuery] QueryParameters query, CancellationToken ct)
@@ -29,7 +30,13 @@ public sealed class StoresController(IStoreService service, ICompanyService comp
     public async Task<IActionResult> GetAllStores(CancellationToken ct)
     {
         var result = await service.GetAsync(new QueryParameters { PageSize = 500 }, ct);
-        return Ok(result.Items.Select(x => new { storeId = x.Id, storeName = x.Name }));
+        var selectedStoreId = storeContext.SelectedStoreId;
+        return Ok(result.Items.Select(x => new
+        {
+            storeId = x.Id,
+            storeName = x.Name,
+            isSelected = x.Id == selectedStoreId
+        }));
     }
 
     [HttpGet("/Stores/Create")]

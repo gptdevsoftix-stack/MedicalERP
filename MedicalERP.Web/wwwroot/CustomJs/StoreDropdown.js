@@ -1,4 +1,4 @@
-﻿$.ajaxSetup({
+$.ajaxSetup({
     beforeSend: function (xhr) {
         var storeId = localStorage.getItem('selectedStoreId');
         if (storeId) {
@@ -35,10 +35,18 @@ $(document).ready(function () {
                 $.each(storedata, function (i, store) {
                     storeSelect.append('<option value="' + store.storeId + '">' + store.storeName + '</option>');
                 });
-                // Retrieve the selected store from localStorage
-                var selectedStoreId = localStorage.getItem('selectedStoreId');
+                // Prefer the server-selected store after login so stale browser
+                // state from another user cannot override the login default.
+                var serverSelectedStore = storedata.find(function (store) { return store.isSelected; });
+                var selectedStoreId = serverSelectedStore
+                    ? serverSelectedStore.storeId
+                    : localStorage.getItem('selectedStoreId');
                 if (selectedStoreId) {
+                    localStorage.setItem('selectedStoreId', selectedStoreId);
+                    document.cookie = "SelectedStoreId=" + encodeURIComponent(selectedStoreId) + "; path=/";
                     storeSelect.val(selectedStoreId);
+                } else {
+                    localStorage.removeItem('selectedStoreId');
                 }
             },
             error: function () {
