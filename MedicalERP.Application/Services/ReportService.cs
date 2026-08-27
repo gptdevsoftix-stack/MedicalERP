@@ -60,7 +60,9 @@ public sealed class ReportService(
         var companyId = RequireCompany();
         var storeId = await RequireStoreAsync(cancellationToken);
 
-        var (from, to) = NormalizeRange(filter.From, filter.To);
+        var (from, to) = NormalizeRange(filter.Period, filter.From, filter.To);
+        filter.From = from;
+        filter.To = to.AddTicks(-1);
 
         var summary = await reportRepository.GetSalesSummaryAsync(companyId, storeId, from, to, cancellationToken);
         var byDay = await reportRepository.GetSalesByDayAsync(companyId, storeId, from, to, cancellationToken);
@@ -90,15 +92,29 @@ public sealed class ReportService(
         };
     }
 
-    private static (DateTimeOffset From, DateTimeOffset To) NormalizeRange(DateTimeOffset? requestedFrom, DateTimeOffset? requestedTo)
+    private static (DateTimeOffset From, DateTimeOffset To) NormalizeRange(ReportPeriod period, DateTimeOffset? requestedFrom, DateTimeOffset? requestedTo)
     {
         var now = DateTimeOffset.Now;
+        var todayFrom = new DateTimeOffset(now.Year, now.Month, now.Day, 0, 0, 0, now.Offset);
         var monthFrom = new DateTimeOffset(now.Year, now.Month, 1, 0, 0, 0, now.Offset);
 
         DateTimeOffset StartOfDay(DateTimeOffset value) => new(value.Year, value.Month, value.Day, 0, 0, 0, value.Offset);
 
+        if (period == ReportPeriod.Daily)
+        {
+            var day = requestedFrom.HasValue ? StartOfDay(requestedFrom.Value) : todayFrom;
+            return (day, day.AddDays(1));
+        }
+
+        if (period == ReportPeriod.Monthly)
+        {
+            var selected = requestedFrom ?? monthFrom;
+            var firstDay = new DateTimeOffset(selected.Year, selected.Month, 1, 0, 0, 0, selected.Offset);
+            return (firstDay, firstDay.AddMonths(1));
+        }
+
         var from = requestedFrom.HasValue ? StartOfDay(requestedFrom.Value) : monthFrom;
-        var to = requestedTo.HasValue ? StartOfDay(requestedTo.Value).AddDays(1) : monthFrom.AddMonths(1);
+        var to = requestedTo.HasValue ? StartOfDay(requestedTo.Value).AddDays(1) : todayFrom.AddDays(1);
         if (to <= from) to = from.AddDays(1);
         return (from, to);
     }

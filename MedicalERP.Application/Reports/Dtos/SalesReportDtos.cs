@@ -4,6 +4,13 @@ using MedicalERP.Domain.Enums;
 
 namespace MedicalERP.Application.Reports.Dtos;
 
+public enum ReportPeriod
+{
+    Daily,
+    Monthly,
+    Custom
+}
+
 public sealed class SalesSummaryDto
 {
     public int SalesCount { get; set; }
@@ -63,6 +70,7 @@ public sealed class LowStockDto
 
 public sealed class SalesReportFilterDto
 {
+    public ReportPeriod Period { get; set; } = ReportPeriod.Monthly;
     public DateTimeOffset? From { get; set; }
     public DateTimeOffset? To { get; set; }
     public string? Search { get; set; }
